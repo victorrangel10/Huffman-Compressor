@@ -72,6 +72,17 @@ void EscreveArvore(node *arvore) {
     }	
 }
 
+
+void EscreveArvoreBinario(node * arvore, FILE *arq){
+    if (EhFolha(arvore)) {
+        ;
+    }else {
+        printf("0");
+        EscreveArvore(arvore->left_node);
+        EscreveArvore(arvore->right_node);
+    }	
+}
+
 void ImprimeArvore(node *a) {
         if (EhFolha(a))
 		{

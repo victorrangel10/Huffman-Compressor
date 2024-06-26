@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
     CriaArvoreOtima(listaArvores);
 
-    /* EscreveArvore(ObtemPrimeiraArvore(listaArvores)); */
+    EscreveArvore(ObtemPrimeiraArvore(listaArvores));
 
     GeraCodigos(ObtemPrimeiraArvore(listaArvores), codigoAtual, 0, ASCII_SIZE, codigos);
 
