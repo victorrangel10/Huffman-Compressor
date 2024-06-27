@@ -129,9 +129,14 @@ void bitmapAppendLeastSignificantBit(bitmap* bm, unsigned char bit) {
  * @param bm O mapa de bits.
  */
 void bitmapLibera (bitmap* bm){
-    
     free (bm->contents);
     free (bm);
 }
 
+void append_char(bitmap * bm, unsigned char ch){
+	 for (int j = 7; j >= 0; j--) {
+            unsigned char bit = (ch >> j) & 0x01;
+            bitmapAppendLeastSignificantBit(bm, bit);
+        }
+}
 

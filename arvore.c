@@ -45,8 +45,6 @@ int PertenceArvore(node *arvore, char c) {
         return 0;
 }
 
-
-
 int RetornaPeso(node *a) {
     if (a != NULL) {
         return a->peso;
@@ -62,57 +60,54 @@ int EhFolha(node *no) {
     return (EhArvoreVazia(no->left_node) && EhArvoreVazia(no->right_node));
 }
 
-void EscreveArvore(node *arvore) {
+void EscreveArvore(bitmap *bm, node *arvore) {
     if (EhFolha(arvore)) {
-        printf("1%c",RetornaLetra(arvore));
-    }else {
+        printf("1%c", RetornaLetra(arvore));
+        bitmapAppendLeastSignificantBit(bm, (unsigned char)'1');
+        append_char(bm, (unsigned char)RetornaLetra(arvore));
+    } else {
         printf("0");
-        EscreveArvore(arvore->left_node);
-        EscreveArvore(arvore->right_node);
-    }	
+        bitmapAppendLeastSignificantBit(bm, (unsigned char)'0');
+        EscreveArvore(bm, arvore->left_node);
+        EscreveArvore(bm, arvore->right_node);
+    }
 }
 
-
-void EscreveArvoreBinario(node * arvore, FILE *arq){
-    if (EhFolha(arvore)) {
-        ;
-    }else {
-        printf("0");
-        EscreveArvore(arvore->left_node);
-        EscreveArvore(arvore->right_node);
-    }	
+void EscreveCabecalho(bitmap *bm, node *arvore) {
+    EscreveArvore(bm, arvore);
+    /* o numero 2 codifica o caracter STX(Start of Text) na tabela ASCII
+     indicando o fim do cabecalho e comeco do texto */
+    append_char(bm,2);
 }
 
 void ImprimeArvore(node *a) {
-        if (EhFolha(a))
-		{
-		printf("%c",RetornaLetra(a));
-		}else{
-		printf("<0 ");
+    if (EhFolha(a)) {
+        printf("%c", RetornaLetra(a));
+    } else {
+        printf("<0 ");
         ImprimeArvore(a->left_node);
         ImprimeArvore(a->right_node);
-		printf(" >");
-		}
-    
+        printf(" >");
+    }
 }
 
-void GeraCodigos(node* raiz, char* codigo_atual, int profundidade, int tam,char codigos[tam][tam]) {
+void GeraCodigos(node *raiz, char *codigo_atual, int profundidade, int tam, char codigos[tam][tam]) {
     if (raiz == NULL)
         return;
 
     // Verifica se é um nó folha
     if (raiz->left_node == NULL && raiz->right_node == NULL) {
-        codigo_atual[profundidade] = '\0'; // Termina a string do código
+        codigo_atual[profundidade] = '\0';  // Termina a string do código
         strcpy(codigos[(unsigned char)raiz->caracter], codigo_atual);
     }
     // Adiciona '0' para a subárvore esquerda
     if (raiz->left_node != NULL) {
         codigo_atual[profundidade] = '0';
-        GeraCodigos(raiz->left_node, codigo_atual, profundidade + 1,tam,codigos);
+        GeraCodigos(raiz->left_node, codigo_atual, profundidade + 1, tam, codigos);
     }
     // Adiciona '1' para a subárvore direita
     if (raiz->right_node != NULL) {
         codigo_atual[profundidade] = '1';
-      	GeraCodigos(raiz->right_node, codigo_atual, profundidade + 1,tam, codigos);
+        GeraCodigos(raiz->right_node, codigo_atual, profundidade + 1, tam, codigos);
     }
 }

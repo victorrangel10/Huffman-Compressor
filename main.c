@@ -13,25 +13,25 @@ void LeString(char *frase, int pesos[ASCII_SIZE], lista *lista) {
     }
 }
 
-void EscreveCodigo(bitmap*bm, char*frase, int tam, char codigos[tam][tam]) {
+void EscreveCodigo(FILE *arqbin, bitmap *bm, char *frase, int tam, char codigos[tam][tam]) {
     char letra;
-  
+
     printf("Codificacao:\n");
     for (int i = 0; frase[i] != '\0'; i++) {
-        letra = frase[i];   
-
+        letra = frase[i];
         for (size_t j = 0; codigos[letra][j] != '\0'; j++) {
             printf("%c", (unsigned char)codigos[letra][j]);
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[letra][j]);
         }
+        printf(" ");
     }
-    FILE * arqbin;
-    arqbin = fopen("coded.bin","wb");
-    fwrite(bitmapGetContents(bm),bitmapGetLength(bm),1,arqbin);
+    append_char(bm,3);
+    fwrite(bitmapGetContents(bm), bitmapGetLength(bm), 1, arqbin);
+    printf("tamanho do bitmap %d, agora dividido por 8 %d, agora resto 8 %d\n",bitmapGetLength(bm),bitmapGetLength(bm)/8,bitmapGetLength(bm)%8);
 
     printf("\nBitmap:\n");
-    for (int i = 0; i < (bitmapGetLength(bm)+7)/8; i++) {
-        printf("%02X ", bitmapGetContents(bm)[i],i);
+    for (int i = 0; i < (bitmapGetLength(bm) + 7) / 8; i++) {
+        printf("%2X ", bitmapGetContents(bm)[i]);
     }
     printf("\n");
 }
@@ -50,14 +50,20 @@ void CriaArvoreOtima(lista *listaArvores) {
 
 int main(int argc, char *argv[]) {
     char *frase = "bom esse bombom";
-    int pesos[ASCII_SIZE] = {0};
-    lista *listaArvores = CriaLista();
-    char codigoAtual[ASCII_SIZE];
-    char codigos[ASCII_SIZE][ASCII_SIZE] = {0};
 
-    bitmap *bm = bitmapInit(1000);
+    int pesos[ASCII_SIZE] = {0};
+
+    lista *listaArvores = CriaLista();
+
+    FILE *arqbin;
+    arqbin = fopen("coded.bin", "wb");
+
+    char codigoAtual[ASCII_SIZE], codigos[ASCII_SIZE][ASCII_SIZE] = {0};
+
+    bitmap *bm = bitmapInit(1024);
 
     LeString(frase, pesos, listaArvores);
+
     // roda toda tabela ascii adicionando os caracteres usados a lista de arvores
     for (size_t i = 32; i < ASCII_SIZE; i++) {
         if (pesos[i] > 0) {
@@ -69,14 +75,23 @@ int main(int argc, char *argv[]) {
     OrdenaLista(listaArvores);
 
     CriaArvoreOtima(listaArvores);
+    //escrevre a arvore otima em formato binario no arquivo, =
+    EscreveCabecalho(bm,ObtemPrimeiraArvore(listaArvores));
 
-    EscreveArvore(ObtemPrimeiraArvore(listaArvores));
-
+    //gera os codigos binarios para cada caractere no texto
     GeraCodigos(ObtemPrimeiraArvore(listaArvores), codigoAtual, 0, ASCII_SIZE, codigos);
 
-    EscreveCodigo(bm,frase, ASCII_SIZE, codigos);
+    //printa os codigos gerados
+    for (int i = 0; i < ASCII_SIZE; i++) {
+        if (codigos[i][0] != '\0') {
+            printf("Caractere %c: %s\n", i, codigos[i]);
+        }
+    }
 
-    //DesalocaLista
-    //desaloca bitmap
+    //escreve o conteudo compactado
+    EscreveCodigo(arqbin,bm, frase, ASCII_SIZE, codigos);
+    // DesalocaLista
+    // desaloca bitmap
+    fclose(arqbin);
     return EXIT_SUCCESS;
 }
