@@ -46,14 +46,10 @@ int PertenceArvore(node *arvore, char c) {
 }
 
 int RetornaPeso(node *a) {
-    if (a != NULL) {
-        return a->peso;
-    }
+    return a->peso;
 }
 char RetornaLetra(node *a) {
-    if (a != NULL) {
-        return a->caracter;
-    }
+    return a->caracter;
 }
 
 int EhFolha(node *no) {

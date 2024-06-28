@@ -28,7 +28,7 @@ void EscreveCodigo(FILE *arqbin, bitmap *bm, char *frase, int tam, char codigos[
     
     fwrite(bitmapGetContents(bm), bitmapGetLength(bm), 1, arqbin);
   
-    printf("tamanho do bitmap %d, agora dividido por 8 %d, agora resto 8 %d\n",bitmapGetLength(bm),bitmapGetLength(bm)/8,bitmapGetLength(bm)%8);
+    printf("\ntamanho do bitmap %d, agora dividido por 8 %d, agora resto 8 %d\n",bitmapGetLength(bm),bitmapGetLength(bm)/8,bitmapGetLength(bm)%8);
 
     printf("\nBitmap:\n");
 

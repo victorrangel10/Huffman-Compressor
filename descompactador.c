@@ -5,9 +5,9 @@
 #include "listaArvores.h"
 #define ASCII_SIZE 127
 
-int reconstroi_tabela(char* string, int size, char codigos[size][size], char codigo_atual[size], int profundidade, int* pos) {
+void reconstroi_tabela(char* string, int size, char codigos[size][size], char codigo_atual[size], int profundidade, int* pos) {
     if (string[*pos] == '\0') {
-        return *pos;
+        return;
     }
 
     if (string[*pos] == '1') {
@@ -35,7 +35,6 @@ bitmap* LeituraBitmapDoArquivo(FILE* arqbin, int tamanhoCabecalho) {
         for (int i = 7; i >= 0; i--) {
             bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
         }
-        printf(" ");
     }
     return bm;
 }
@@ -87,27 +86,19 @@ void transforma_bitmap_em_string(char* string, bitmap* bm, int* index) {
     *index = i;
 }
 
-
-
-
-/* void decodifica_texto(bitmap * bm, int index, char** codigos){
-    //pega 3 e compara
-    char cmp_string[100] = {0};
-
-    for (size_t i = 0; i < 3; i++)
-    {
-      
-    }
-    
-    
-
-    //pega 2 e compara
-} */
+void decodifica_textos(bitmap *bm, int index, int tam,char codigos[tam][tam], int max_size){
+    char codigo[max_size];
+    int i=0;
+    codigo[1] = bitmapGetBit(bm,index+1)+'0';
+    printf("%02X",codigo[1]);
+    codigo[2] = bitmapGetBit(bm,index+2) + '0';
+    codigo[3] = '\n';
+    printf("codigo buscado eh: %s \n",codigo);
+}
 
 
 
 int main() {
-    
     FILE* arq = fopen("coded.bin", "rb");
 
     char stringFinal[100];
@@ -128,9 +119,7 @@ int main() {
 
     transforma_bitmap_em_string(stringFinal, bm, &index);
 
-    int size_maior_codigo = reconstroi_tabela(stringFinal, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
-
-    printf("profundidade eh%d\n",size_maior_codigo);
+    reconstroi_tabela(stringFinal, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
 
     for (int i = 0; i < ASCII_SIZE; i++) {
         if (codigos[i][0] != '\0') {
@@ -138,7 +127,8 @@ int main() {
         }
     }
 
-    /* decodifica_texto(bm,index); */
+    decodifica_textos(bm,index,ASCII_SIZE,codigos,1000);
+    bitmapLibera(bm);
     fclose(arq);
     return 0;
 }
