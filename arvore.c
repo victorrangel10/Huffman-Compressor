@@ -75,12 +75,16 @@ void EscreveArvore(bitmap *bm, node *arvore) {
 
 void EscreveCabecalho(bitmap *bm, node *arvore) {
     EscreveArvore(bm, arvore);
-    /* o numero 2 codifica o caracter STX(Start of Text) na tabela ASCII
-     indicando o fim do cabecalho e comeco do texto */
-    append_char(bm,2);
+    /* coloca dois bits '1' para indicar que o cabecalho acabou*/
+    for (size_t i = 0; i <2; i++)
+    {
+        bitmapAppendLeastSignificantBit(bm,'1');
+    }
+    
+    printf("\n%d %d\n",bitmapGetLength(bm),bitmapGetLength(bm)%8);
 }
 
-void ImprimeArvore(node *a) {
+void ImprimeArvore(node *a){
     if (EhFolha(a)) {
         printf("%c", RetornaLetra(a));
     } else {

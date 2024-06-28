@@ -5,9 +5,9 @@
 #include "listaArvores.h"
 #define ASCII_SIZE 127
 
-void ConstroiArvorePorCodigo(char* string, int size, char codigos[size][size], char codigo_atual[size], int profundidade, int* pos) {
+int reconstroi_tabela(char* string, int size, char codigos[size][size], char codigo_atual[size], int profundidade, int* pos) {
     if (string[*pos] == '\0') {
-        return;
+        return *pos;
     }
 
     if (string[*pos] == '1') {
@@ -16,62 +16,106 @@ void ConstroiArvorePorCodigo(char* string, int size, char codigos[size][size], c
         char caracter = string[(*pos)];
         strcpy(codigos[(unsigned char)caracter], codigo_atual);
         (*pos)++;
-
     } else if (string[*pos] == '0') {
         (*pos)++;
         // manda pra esquerda
         codigo_atual[profundidade] = '0';
-        ConstroiArvorePorCodigo(string, size, codigos, codigo_atual, profundidade + 1, pos);
+        reconstroi_tabela(string, size, codigos, codigo_atual, profundidade + 1, pos);
         // madnda pra direita
         codigo_atual[profundidade] = '1';
-        ConstroiArvorePorCodigo(string, size, codigos, codigo_atual, profundidade + 1, pos);
+        reconstroi_tabela(string, size, codigos, codigo_atual, profundidade + 1, pos);
     }
+    
 }
 
-/* while(nao leu 2 em binario)
-{
-manda isso aqui pra decodificar na arvore
-}
-comeca a ler o texto ate o EOF
-decodifica o texto lido.
-*/
-
-void RecuperaBitMap(FILE* arq, bitmap* bm) {
-    /* unsigned char letra;
-    int i = 0;
-   
-    int byte = (unsigned char)fgetc(arq);
-    printf("li %x\n", byte);
-    while (byte != '\x03') {
-        printf("chegou\n");
-        append_char(bm, (unsigned char)byte);
-        byte = fgetc(arq);
-        printf("li %x\n", byte);
-    } */
-   int byte;
-
-    while ((byte = fgetc(arq)) != EOF && byte != 0x03) {
-        printf("li %02X\n", byte); // Debug: imprime o byte lido em hexadecimal
-        append_char(bm, (unsigned char)byte);
+bitmap* LeituraBitmapDoArquivo(FILE* arqbin, int tamanhoCabecalho) {
+    unsigned char byte;
+    bitmap* bm = bitmapInit(1024);
+    while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1) {
+        for (int i = 7; i >= 0; i--) {
+            bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
+        }
+        printf(" ");
     }
-
-    if (byte == 0x03) {
-        printf("Encontrou o caractere de parada (0x03)\n");
-    } else {
-        printf("Fim do arquivo ou caractere de parada não encontrado.\n");
-    }
+    return bm;
 }
 
-// TEM QUE INICIALIZAR O BITMAP E LER TUDO
+void transforma_bitmap_em_string(char* string, bitmap* bm, int* index) {
+    /* como i pode ser incrementado nos valores 1 e 8, o "falsoi"
+    vai ser incrementado apenas em 1 para contar as iteracoes*/
+
+    int flag = 0, i = 0, falsoi = 0;
+    unsigned char bitAtual = '\0';
+
+    while (!flag) {
+        bitAtual = bitmapGetBit(bm, i) + '0';
+        //  printf("LI o bit %c\n",bitmapGetBit(bm, i) + '0');
+        falsoi++;
+
+        if (bitAtual == '0') {
+            //  printf("entrou no 0\n");
+            string[falsoi - 1] = '0';
+            i++;
+            continue;
+        } else if (bitAtual == '1') {
+            if ((bitmapGetBit(bm, i + 1) + '0') == '1') {
+                flag = 1;
+               // printf("chegou no final do cabecalho\n");
+                break;
+            }
+
+            unsigned char byte = 0x00;
+            int j;
+            for (j = 0; j < 8; j++) {
+                unsigned char bit = bitmapGetBit(bm, i + 1 + j);
+                //  printf("Mandando o bit %c para construir a letra\n",bitmapGetBit(bm, i+1+j) + '0');
+                byte |= (bit << (7 - j));
+                // printf("byte eh %02X\n",byte);
+            }
+            string[falsoi - 1] = '1';
+            falsoi++;
+            string[falsoi - 1] = byte;
+
+            //printf("ENVIANDO A LETRA %b\n",byte);
+            //printf("ENVIANDO A LETRA NA STRING %c\n",string[falsoi-1]);
+            i += j + 1;
+        }
+    }
+
+    string[falsoi] = '\0';
+    printf("%s\n", string);
+    *index = i;
+}
+
+
+
+
+/* void decodifica_texto(bitmap * bm, int index, char** codigos){
+    //pega 3 e compara
+    char cmp_string[100] = {0};
+
+    for (size_t i = 0; i < 3; i++)
+    {
+      
+    }
+    
+    
+
+    //pega 2 e compara
+} */
+
+
 
 int main() {
+    
     FILE* arq = fopen("coded.bin", "rb");
-    bitmap* bm;
+
+    char stringFinal[100];
+
     if (!arq) {
-        printf("DEU merda");
+        printf("Nao conseguiu abrir o arquivon\n");
     }
 
-    char* string = "0001m1s01e1 01b1o";
     char codigos[ASCII_SIZE][ASCII_SIZE], codigo_atual[ASCII_SIZE] = {0};
 
     for (int i = 0; i < ASCII_SIZE; i++) {
@@ -79,15 +123,22 @@ int main() {
     }
 
     int pos = 0;
-    RecuperaBitMap(arq, bm);
-    /* ConstroiArvorePorCodigo(string, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
+    bitmap* bm = LeituraBitmapDoArquivo(arq, 30);
+    int index = 0;
+
+    transforma_bitmap_em_string(stringFinal, bm, &index);
+
+    int size_maior_codigo = reconstroi_tabela(stringFinal, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
+
+    printf("profundidade eh%d\n",size_maior_codigo);
 
     for (int i = 0; i < ASCII_SIZE; i++) {
         if (codigos[i][0] != '\0') {
             printf("Caractere %c: %s\n", i, codigos[i]);
         }
-    } */
+    }
 
+    /* decodifica_texto(bm,index); */
     fclose(arq);
     return 0;
 }

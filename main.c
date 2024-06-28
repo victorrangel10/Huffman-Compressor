@@ -25,11 +25,13 @@ void EscreveCodigo(FILE *arqbin, bitmap *bm, char *frase, int tam, char codigos[
         }
         printf(" ");
     }
-    append_char(bm,3);
+    
     fwrite(bitmapGetContents(bm), bitmapGetLength(bm), 1, arqbin);
+  
     printf("tamanho do bitmap %d, agora dividido por 8 %d, agora resto 8 %d\n",bitmapGetLength(bm),bitmapGetLength(bm)/8,bitmapGetLength(bm)%8);
 
     printf("\nBitmap:\n");
+
     for (int i = 0; i < (bitmapGetLength(bm) + 7) / 8; i++) {
         printf("%2X ", bitmapGetContents(bm)[i]);
     }
@@ -50,21 +52,22 @@ void CriaArvoreOtima(lista *listaArvores) {
 
 int main(int argc, char *argv[]) {
     char *frase = "bom esse bombom";
-
     int pesos[ASCII_SIZE] = {0};
-
     lista *listaArvores = CriaLista();
+    FILE *arqbin = fopen("coded.bin", "wb");
 
-    FILE *arqbin;
-    arqbin = fopen("coded.bin", "wb");
+    if (arqbin == NULL) {
+        perror("Erro ao abrir arquivo");
+        return EXIT_FAILURE;
+    }
 
-    char codigoAtual[ASCII_SIZE], codigos[ASCII_SIZE][ASCII_SIZE] = {0};
-
+    char codigoAtual[ASCII_SIZE];
+    char codigos[ASCII_SIZE][ASCII_SIZE] = {0};
     bitmap *bm = bitmapInit(1024);
 
     LeString(frase, pesos, listaArvores);
 
-    // roda toda tabela ascii adicionando os caracteres usados a lista de arvores
+    // Adiciona caracteres usados à lista de árvores
     for (size_t i = 32; i < ASCII_SIZE; i++) {
         if (pesos[i] > 0) {
             node *arvore = CriaArvore(i, pesos[i], CriaVazio(), CriaVazio());
@@ -73,9 +76,9 @@ int main(int argc, char *argv[]) {
     }
 
     OrdenaLista(listaArvores);
-
     CriaArvoreOtima(listaArvores);
-    //escrevre a arvore otima em formato binario no arquivo, =
+
+    //escrevre a arvore otima em formato binario no arquivo
     EscreveCabecalho(bm,ObtemPrimeiraArvore(listaArvores));
 
     //gera os codigos binarios para cada caractere no texto

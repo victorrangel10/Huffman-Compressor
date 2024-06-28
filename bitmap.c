@@ -140,3 +140,12 @@ void append_char(bitmap * bm, unsigned char ch){
         }
 }
 
+
+void correctByte(bitmap*bm){
+int sobra = bitmapGetLength(bm)%8;
+for (size_t i = 0; i < 2; i++)
+{
+	bitmapAppendLeastSignificantBit(bm,(unsigned char)'0');
+}
+}
+
