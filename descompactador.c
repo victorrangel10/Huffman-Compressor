@@ -86,10 +86,18 @@ void transforma_bitmap_em_string(char* string, bitmap* bm, int* index) {
     printf("%s\n", string);
     *index = i;
 }
+int eh_igual_codigo(char * codigo, char * string){
+    if (strcmp(codigo,string)==0)
+    {
+        return 1;
+    }
+    else return 0;
+}
+
 
 void decodifica_textos(bitmap* bm, int index, int tam, char codigos[tam][tam], int max_size) {
     char codigo[max_size];
-    int i = 0;
+    int i = 0,j=0;
     /* codigo[0] = bitmapGetBit(bm, index) + '0';
     printf("primeiro bit lido %c\n", codigo[0]);
     codigo[1] = bitmapGetBit(bm, index + 1) + '0';
@@ -98,9 +106,30 @@ void decodifica_textos(bitmap* bm, int index, int tam, char codigos[tam][tam], i
     codigo[4] = '\0';
     printf("codigo buscado eh: %s\n", codigo); */
 
-    while (index<bitmapGetLength(bm))
+    while (index<bitmapGetLength(bm)/8)
     {
-        
+      /* printf(" index eh: %d\n",index);
+      printf(" length eh: %d\n",bitmapGetLength(bm));
+      printf("Adicionando %c ao codigo\n",bitmapGetBit(bm,index)+'0'); */
+
+      codigo[j] = bitmapGetBit(bm,index)+'0';
+
+      codigo[j+1] = '\0';
+
+      j++;
+      index++;
+      /* printf("TAM EH %d\n",tam);
+      printf(" buscando por: %s\n",codigo); */
+
+      for (size_t i = 0; i < tam; i++)
+      {
+        if (eh_igual_codigo(codigo, codigos[i]))
+        {
+            printf(" ACHOU LETRA %c\n",i);
+            j=0;
+        } 
+      }
+      /* printf("SAiu uma vez"); */
     }
     
 }
@@ -133,7 +162,7 @@ int main() {
             printf("Caractere %c: %s\n", i, codigos[i]);
         }
     }
-
+    printf("bit no index eh %c\n",bitmapGetBit(bm,index)+'0');
     decodifica_textos(bm, index, ASCII_SIZE, codigos, 1000);
     bitmapLibera(bm);
     fclose(arq);

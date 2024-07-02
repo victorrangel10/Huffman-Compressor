@@ -69,7 +69,7 @@ void EscreveArvore(bitmap *bm, node *arvore) {
     }
 }
 
-void EscreveCabecalho(bitmap *bm, node *arvore) {
+void EscreveCabecalho(bitmap *bm, node *arvore){
     EscreveArvore(bm, arvore);
     /* coloca dois bits '1' para indicar que o cabecalho acabou*/
     for (size_t i = 0; i <2; i++)
