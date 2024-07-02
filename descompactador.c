@@ -25,7 +25,6 @@ void reconstroi_tabela(char* string, int size, char codigos[size][size], char co
         codigo_atual[profundidade] = '1';
         reconstroi_tabela(string, size, codigos, codigo_atual, profundidade + 1, pos);
     }
-    
 }
 
 bitmap* LeituraBitmapDoArquivo(FILE* arqbin, int tamanhoCabecalho) {
@@ -57,9 +56,11 @@ void transforma_bitmap_em_string(char* string, bitmap* bm, int* index) {
             i++;
             continue;
         } else if (bitAtual == '1') {
+            // nenhum char comeca com 1, por isso, a sequencia 11 se torna impossivel, sendo utilizada para indicar o fim do cabecalho
             if ((bitmapGetBit(bm, i + 1) + '0') == '1') {
                 flag = 1;
-               // printf("chegou no final do cabecalho\n");
+                i += 2;
+                // printf("chegou no final do cabecalho\n");
                 break;
             }
 
@@ -75,8 +76,8 @@ void transforma_bitmap_em_string(char* string, bitmap* bm, int* index) {
             falsoi++;
             string[falsoi - 1] = byte;
 
-            //printf("ENVIANDO A LETRA %b\n",byte);
-            //printf("ENVIANDO A LETRA NA STRING %c\n",string[falsoi-1]);
+            // printf("ENVIANDO A LETRA %b\n",byte);
+            // printf("ENVIANDO A LETRA NA STRING %c\n",string[falsoi-1]);
             i += j + 1;
         }
     }
@@ -86,29 +87,32 @@ void transforma_bitmap_em_string(char* string, bitmap* bm, int* index) {
     *index = i;
 }
 
-void decodifica_textos(bitmap *bm, int index, int tam,char codigos[tam][tam], int max_size){
+void decodifica_textos(bitmap* bm, int index, int tam, char codigos[tam][tam], int max_size) {
     char codigo[max_size];
-    int i=0;
-    codigo[1] = bitmapGetBit(bm,index+1)+'0';
-    printf("%02X",codigo[1]);
-    codigo[2] = bitmapGetBit(bm,index+2) + '0';
-    codigo[3] = '\n';
-    printf("codigo buscado eh: %s \n",codigo);
+    int i = 0;
+    /* codigo[0] = bitmapGetBit(bm, index) + '0';
+    printf("primeiro bit lido %c\n", codigo[0]);
+    codigo[1] = bitmapGetBit(bm, index + 1) + '0';
+    codigo[2] = bitmapGetBit(bm, index + 2) + '0';
+    codigo[3] = bitmapGetBit(bm, index + 3) + '0';
+    codigo[4] = '\0';
+    printf("codigo buscado eh: %s\n", codigo); */
+
+    while (index<bitmapGetLength(bm))
+    {
+        
+    }
+    
 }
-
-
 
 int main() {
     FILE* arq = fopen("coded.bin", "rb");
-
     char stringFinal[100];
-
     if (!arq) {
         printf("Nao conseguiu abrir o arquivon\n");
     }
 
     char codigos[ASCII_SIZE][ASCII_SIZE], codigo_atual[ASCII_SIZE] = {0};
-
     for (int i = 0; i < ASCII_SIZE; i++) {
         codigos[i][0] = '\0';
     }
@@ -117,8 +121,11 @@ int main() {
     bitmap* bm = LeituraBitmapDoArquivo(arq, 30);
     int index = 0;
 
+    // a partir do bitmap lido, transforma conteudo em string capaz de gerar arvore ou tabela de codificacao
+    /*  `index` eh o indice onde comeca o conteudo do arquivo, imediatamente apos o cabecalho*/
     transforma_bitmap_em_string(stringFinal, bm, &index);
 
+    // transforma a string lida na tabela de codificacao
     reconstroi_tabela(stringFinal, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
 
     for (int i = 0; i < ASCII_SIZE; i++) {
@@ -127,7 +134,7 @@ int main() {
         }
     }
 
-    decodifica_textos(bm,index,ASCII_SIZE,codigos,1000);
+    decodifica_textos(bm, index, ASCII_SIZE, codigos, 1000);
     bitmapLibera(bm);
     fclose(arq);
     return 0;
