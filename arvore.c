@@ -76,8 +76,7 @@ void EscreveCabecalho(bitmap *bm, node *arvore){
     {
         bitmapAppendLeastSignificantBit(bm,'1');
     }
-    
-    printf("\n%d %d\n",bitmapGetLength(bm),bitmapGetLength(bm)%8);
+    printf("\n lenght %d lenght%8: %d\n",bitmapGetLength(bm),bitmapGetLength(bm)%8);
 }
 
 void ImprimeArvore(node *a){

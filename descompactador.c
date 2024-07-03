@@ -29,7 +29,7 @@ void reconstroi_tabela(char* string, int size, char codigos[size][size], char co
 
 bitmap* LeituraBitmapDoArquivo(FILE* arqbin, int tamanhoCabecalho) {
     unsigned char byte;
-    bitmap* bm = bitmapInit(1024);
+    bitmap* bm = bitmapInit(10000);
     while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1) {
         for (int i = 7; i >= 0; i--) {
             bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
@@ -105,7 +105,7 @@ void decodifica_textos(bitmap* bm, int index, int tam, char codigos[tam][tam], i
     codigo[3] = bitmapGetBit(bm, index + 3) + '0';
     codigo[4] = '\0';
     printf("codigo buscado eh: %s\n", codigo); */
-
+  printf("cacando string: ");
     while (index<bitmapGetLength(bm)/8)
     {
       /* printf(" index eh: %d\n",index);
@@ -118,20 +118,21 @@ void decodifica_textos(bitmap* bm, int index, int tam, char codigos[tam][tam], i
 
       j++;
       index++;
-      /* printf("TAM EH %d\n",tam);
-      printf(" buscando por: %s\n",codigo); */
+     
+     
 
       for (size_t i = 0; i < tam; i++)
       {
         if (eh_igual_codigo(codigo, codigos[i]))
         {
-            printf(" ACHOU LETRA %c\n",i);
+            printf("%c",i);
             j=0;
         } 
+
       }
-      /* printf("SAiu uma vez"); */
+     
     }
-    
+     printf("\n");
 }
 
 int main() {
@@ -147,12 +148,13 @@ int main() {
     }
 
     int pos = 0;
-    bitmap* bm = LeituraBitmapDoArquivo(arq, 30);
+    bitmap* bm = LeituraBitmapDoArquivo(arq, 100);
     int index = 0;
 
     // a partir do bitmap lido, transforma conteudo em string capaz de gerar arvore ou tabela de codificacao
     /*  `index` eh o indice onde comeca o conteudo do arquivo, imediatamente apos o cabecalho*/
     transforma_bitmap_em_string(stringFinal, bm, &index);
+    printf(" index eh %d\n",index);
 
     // transforma a string lida na tabela de codificacao
     reconstroi_tabela(stringFinal, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
