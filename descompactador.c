@@ -119,8 +119,6 @@ void decodifica_textos(bitmap* bm, int index, int tam, char codigos[tam][tam], i
       j++;
       index++;
      
-     
-
       for (size_t i = 0; i < tam; i++)
       {
         if (eh_igual_codigo(codigo, codigos[i]))

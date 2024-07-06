@@ -133,3 +133,19 @@ node * SomaDuasPrimeirasArvores(lista *l, node **t1, node **t2){
 node * ObtemPrimeiraArvore(lista *l){
 	return l->prim->arvore;
 }
+
+
+void LiberaListaArvores(lista *l){
+	tCell *atual=l->prim;
+    tCell *prox=NULL;
+
+    while (atual != NULL)
+    {
+        prox = atual->proxima;
+		LiberaArvore(atual->arvore);
+        free(atual);
+        atual = prox;
+    }
+	
+    free(l);
+}

@@ -20,5 +20,6 @@ void ImprimeLista(lista *l);
 int RetornaTam(lista * l);
 node * SomaDuasPrimeirasArvores(lista *l,node **t1, node **t2);
 node * ObtemPrimeiraArvore(lista *l);
+void LiberaListaArvores(lista *l);
 #endif // LISTA_H
 //

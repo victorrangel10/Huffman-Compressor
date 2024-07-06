@@ -22,5 +22,5 @@ void EscreveArvore(bitmap* bm, node *arvore);
 
 void GeraCodigos(node* raiz, char* codigo_atual, int profundidade,int tam, char codigos[tam][tam]);
 
-
+void LiberaArvore(node *arvore);
 #endif // ARVORE_H
