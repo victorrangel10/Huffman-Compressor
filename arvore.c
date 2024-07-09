@@ -1,5 +1,4 @@
 #include "arvore.h"
-
 #include <stdio.h>
 #include <string.h>
 
@@ -75,7 +74,7 @@ void EscreveArvore(bitmap *bm, node *arvore)
     {
         printf("1%c", RetornaLetra(arvore));
         bitmapAppendLeastSignificantBit(bm, (unsigned char)'1');
-        append_char(bm, (unsigned char)RetornaLetra(arvore));
+        bitmap_append_char(bm, (unsigned char)RetornaLetra(arvore));
     }
     else
     {
@@ -95,7 +94,7 @@ void EscreveCabecalho(bitmap *bm, node *arvore)
     {
         bitmapAppendLeastSignificantBit(bm, '1');
     }
-    // printf("\n lenght %d lenght%8: %d\n",bitmapGetLength(bm),bitmapGetLength(bm)%8);
+    printf("\n");
 }
 
 void ImprimeArvore(node *a)

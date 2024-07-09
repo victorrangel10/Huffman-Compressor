@@ -133,7 +133,7 @@ void bitmapLibera (bitmap* bm){
     free (bm);
 }
 
-void append_char(bitmap * bm, unsigned char ch){
+void bitmap_append_char(bitmap * bm, unsigned char ch){
 	 for (int j = 7; j >= 0; j--) {
             unsigned char bit = (ch >> j) & 0x01;
             bitmapAppendLeastSignificantBit(bm, bit);

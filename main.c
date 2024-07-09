@@ -16,24 +16,6 @@ void LeString(char *frase, int pesos[ASCII_SIZE], lista *lista)
     }
 }
 
-void EscreveCodigo(FILE *arqbin, bitmap *bm, char *frase, int tam, char codigos[tam][tam])
-{
-    char letra;
-
-    for (int i = 0; frase[i] != '\0'; i++)
-    {
-        letra = frase[i];
-        for (size_t j = 0; codigos[letra][j] != '\0'; j++)
-        {
-            printf("%c ", (unsigned char)codigos[letra][j]);
-            bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[letra][j]);
-        }
-        printf(" ");
-    }
-
-    fwrite(bitmapGetContents(bm), bitmapGetLength(bm), 1, arqbin);
-}
-
 void CriaArvoreOtima(lista *listaArvores)
 {
     node *t1, *t2, *tr;
@@ -59,10 +41,10 @@ int main(int argc, char *argv[])
     lista *listaArvores = CriaLista();
 
     // arquivo de saida compactado
-    FILE *arqbin = fopen("coded.bin", "wb");
+    FILE *arqbin = fopen("arquivos/compressao.comp", "wb");
 
     // arquivo de entrada
-    FILE *arqtxt = fopen("entrada.txt", "r");
+    FILE *arqtxt = fopen(argv[1], "r");
 
     if (arqtxt == NULL)
     {
@@ -82,7 +64,7 @@ int main(int argc, char *argv[])
 
     // le o input e determina os pesos de cada letra
     /* printf("string lida do arquivo:\n"); */
-    char caractere;
+    int caractere;
     while ((caractere = fgetc(arqtxt)) != EOF)
     {
         /* putchar(caractere); // Imprime o caractere na tela */
@@ -94,7 +76,7 @@ int main(int argc, char *argv[])
     size = ftell(arqtxt);
 
     // Adiciona caracteres usados à lista de árvores
-    for (size_t i = 32; i < ASCII_SIZE; i++)
+    for (size_t i = 0; i < ASCII_SIZE; i++)
     {
         if (pesos[i] > 0)
         {
@@ -102,6 +84,9 @@ int main(int argc, char *argv[])
             InsereFinalLista(listaArvores, arvore);
         }
     }
+    // cria caractere ETX para comunicar o fim do texto
+    node *arvore = CriaArvore(3, 1, CriaVazio(), CriaVazio());
+    InsereFinalLista(listaArvores, arvore);
 
     OrdenaLista(listaArvores);
     CriaArvoreOtima(listaArvores);
@@ -110,18 +95,16 @@ int main(int argc, char *argv[])
     GeraCodigos(ObtemPrimeiraArvore(listaArvores), codigoAtual, 0, ASCII_SIZE, codigos);
 
     // printa os codigos gerados
-    /* printf("\n");
+    printf("\n");
     for (int i = 0; i < ASCII_SIZE; i++)
     {
         if (codigos[i][0] != '\0')
         {
-            printf("Caractere %c: %s\n", i, codigos[i]);
+            printf("Caractere %c(%d): %s\n", i, i, codigos[i]);
         }
-    } */
+    }
 
     // escreve o conteudo compactado
-    /* EscreveCodigo(arqbin, bm, frase, ASCII_SIZE, codigos); */
-
 
     bitmap *bm = bitmapInit(MEGABYTE);
 
@@ -129,18 +112,36 @@ int main(int argc, char *argv[])
     EscreveCabecalho(bm, ObtemPrimeiraArvore(listaArvores));
 
     rewind(arqtxt);
+
     while ((caractere = fgetc(arqtxt)) != EOF)
-    {   
-        //escreve cada bit do codigo de um caracter no bitmap
+    {
+        // escreve cada bit do codigo de um caracter no bitmap
         for (size_t j = 0; codigos[caractere][j] != '\0'; j++)
         {
-            printf("%c", (unsigned char)codigos[caractere][j]);
+            //  printf("%c", (unsigned char)codigos[caractere][j]);
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
+            // se chegar perto de do MB, dumpa e cria um novo
+            
+            if (bitmapGetLength(bm) >= MEGABYTE - 100)
+            {
+                fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+                bitmapLibera(bm);
+                bm = bitmapInit(MEGABYTE);
+            }
         }
-        printf(" ");
+        /* printf(" "); */
+    }
+    // coloca o caractere de final
+    printf("COLOCANDO FINAL\n");
+    for (size_t j = 0; codigos[03][j] != '\0'; j++)
+    {
+        printf("%c", (unsigned char)codigos[03][j]);
+        bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[03][j]);
     }
 
-    fwrite(bitmapGetContents(bm), bitmapGetLength(bm), 1, arqbin);
+    
+        fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+
 
     LiberaListaArvores(listaArvores);
     bitmapLibera(bm);
