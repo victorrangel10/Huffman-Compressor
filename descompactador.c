@@ -141,7 +141,13 @@ void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos
 
     while (!found_end_char)
     {
-       
+       if (index == BM_TAM) {
+            fprintf(arqsaida," -- vai trocar bm agora --");
+            bitmapLibera(bm);
+            bm = LeMegaByteDoArquivo(arqbin);
+            index = 0;
+           
+        }
 
 
         codigo[j] = bitmapGetBit(bm, index) + '0';
@@ -163,12 +169,6 @@ void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos
               //  printf("%c", i);
                 j = 0;
             }
-        }
-        if (index == BM_TAM) {
-            fprintf(arqsaida," -- vai trocar bm agora --");
-            bitmapLibera(bm);
-            bm = LeMegaByteDoArquivo(arqbin);
-            index = 0;  
         }
     }
 }
