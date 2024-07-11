@@ -35,6 +35,16 @@ void LiberaArvore(node *arvore)
     free(arvore);
 }
 
+int RetornaAlturaArvore(node* ab) {
+    if(!ab) return -1; // vazia
+    if(!ab->right_node && !ab->left_node) return 1; // folha
+    
+    int aE = 1 + RetornaAlturaArvore(ab->left_node);
+    int aD = 1 + RetornaAlturaArvore(ab->right_node);
+
+    return (aE > aD) ? aE : aD;
+}
+
 int EhArvoreVazia(node *arvore)
 {
     return arvore == NULL;
@@ -111,6 +121,29 @@ void ImprimeArvore(node *a)
         printf(" >");
     }
 }
+
+// void GeraCodigos(node* ab, int l, int c, char tab[l][c], char* caminhoAtual, int nivelAtual) {
+//     if(!ab) return;
+    
+//     if(!ab->right_node && !ab->left_node) { // folha: possui um caracter
+//         strcpy(tab[(int)ab->caracter], caminhoAtual);
+//     } else {
+//         char caminhoEsquerda[nivelAtual + 1];
+//         char caminhoDireita[nivelAtual + 1];
+
+//         if(nivelAtual == 1) {
+//             sprintf(caminhoEsquerda, "0");
+//             sprintf(caminhoDireita, "1");
+//         } else {
+//             sprintf(caminhoEsquerda, "%s0",caminhoAtual);
+//             sprintf(caminhoDireita, "%s1",caminhoAtual);
+//         }
+
+//         nivelAtual++;
+//         GeraCodigos(ab->right_node, l, c, tab, caminhoDireita, nivelAtual);
+//         GeraCodigos(ab->left_node, l, c, tab, caminhoEsquerda, nivelAtual);
+//     }
+// }
 
 void GeraCodigos(node *raiz, char *codigo_atual, int profundidade, int tam, char codigos[tam][tam])
 {

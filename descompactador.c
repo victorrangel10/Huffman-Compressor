@@ -175,25 +175,30 @@ void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos
 
 int main(int argc, char *argv[])
 {
-    FILE *arq = fopen("arquivos/compressao.comp", "rb");
-    char stringFinal[100000];
-    if (!arq)
-    {
-        printf("Nao conseguiu abrir o arquivon\n");
+    if(argc <= 1) {
+        printf("ERRO: arquivo compactado não foi informado.\n");
+        return EXIT_FAILURE;
     }
+    FILE *arq = fopen(argv[1], "rb");
+    if(arq == NULL) {
+        printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
+        return EXIT_FAILURE;
+    }
+    
+    char stringFinal[100000];
 
-    FILE *arqtxt = fopen("arquivos/saida.txt", "w");
-    if (arqtxt == NULL)
-    {
-        perror("Erro ao abrir arquivo txt");
+
+    char nome[21];
+    sscanf(argv[1], "%[^.]", nome);
+    char nomeTxt[51];
+    sprintf(nomeTxt, "%sDescompactado.txt", nome);
+    FILE *arqtxt = fopen(nomeTxt, "w");
+    if(arqtxt == NULL) {
+        printf("ERRO: não foi possível abriar o arquivo ./%s\n", nomeTxt);
         return EXIT_FAILURE;
     }
 
-    char codigos[ASCII_SIZE][ASCII_SIZE], codigo_atual[ASCII_SIZE] = {0};
-    for (int i = 0; i < ASCII_SIZE; i++)
-    {
-        codigos[i][0] = '\0';
-    }
+    char codigos[ASCII_SIZE][ASCII_SIZE] = {0}, codigo_atual[ASCII_SIZE] = {0};
 
     int pos = 0;
     

@@ -9,7 +9,8 @@ typedef struct no node;
 
 // Prototipação das funções
 node *CriaVazio();
-node *CriaArvore(char caract4er, int peso, node *right, node *left);
+int RetornaAlturaArvore(node* ab);
+node *CriaArvore(char caracter, int peso, node *right, node *left);
 void LiberaArvore(node *arvore);
 int EhArvoreVazia(node *arvore);
 int PertenceArvore(node *arvore, char c);
@@ -20,7 +21,8 @@ int EhFolha(node * no);
 void EscreveCabecalho(bitmap* bm,node * arvore);
 void EscreveArvore(bitmap* bm, node *arvore);
 
-void GeraCodigos(node* raiz, char* codigo_atual, int profundidade,int tam, char codigos[tam][tam]);
+void GeraCodigos(node* raiz, char* codigo_atual, int profundidade, int tam, char codigos[tam][tam]);
+// void GeraCodigos(node* ab, int l, int c, char tab[l][c], char* caminhoAtual, int nivelAtual);
 
 void LiberaArvore(node *arvore);
 #endif // ARVORE_H

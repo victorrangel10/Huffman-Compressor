@@ -25,23 +25,62 @@ int EstaVaziaLista(lista * l){
 	return l->prim==NULL;
 }
 
-void InsereFinalLista(lista* l, node * arvore){
+void InsereLista(lista* l, node* arvore){
+	l->tam++;
 	tCell* celula = malloc(sizeof(tCell));
 	celula->arvore = arvore;
+	celula->proxima = NULL;
+	
 	// caso lista vazia
-	if (l->prim == NULL && l->ult == NULL) { 
+	if (l->prim == NULL) {
 		l->prim=l->ult=celula;
-		l->prim->proxima = NULL;
-		l->tam++;
 		return;
 	}
 	// se nao for vazia
+	tCell* celAtual = l->prim;
+	tCell* celAnterior = NULL;
+
+	while (celAtual)
+	{
+		if(RetornaPeso(celAtual->arvore) >= RetornaPeso(arvore)) {
+			if(celAnterior == NULL) {
+				celula->proxima = l->prim;
+				l->prim = celula;
+			} else {
+				celAnterior->proxima = celula;
+				celula->proxima = celAtual;
+			}
+			return;
+		}
+		celAnterior = celAtual;
+		celAtual = celAtual->proxima;
+	}
 	l->ult->proxima = celula;
 	l->ult = celula;
-	celula->proxima = NULL;
-	l->tam++;
 }
 
+node* CriaArvoreHuff(lista* l) {
+	if(EstaVaziaLista(l)) return NULL; // lista vazia;
+	if(l->prim == l->ult) { // apenas 1 elemento
+		node* ab = l->prim->arvore;
+		free(l->prim);
+		free(l);
+		return ab;
+	}
+
+	int peso = RetornaPeso(l->prim->arvore) + RetornaPeso(l->prim->proxima->arvore);
+	node* ab = CriaArvore(0, peso, l->prim->proxima->arvore, l->prim->arvore);
+
+	tCell* aux = l->prim;
+	tCell* aux2 = l->prim->proxima;
+	l->tam -= 2;
+	l->prim = l->prim->proxima->proxima;
+	free(aux);
+	free(aux2);
+
+	InsereLista(l, ab);
+	return CriaArvoreHuff(l);
+}
 
 node* RetiraLista(lista * l, node * arvore){
 	tCell * anterior = NULL;
@@ -88,25 +127,6 @@ node* RetiraLista(lista * l, node * arvore){
 	}
 }
 
-void OrdenaLista(lista* l){
-	if(!l) return;
-	tCell * aux, *atual, *proxima;
-	atual = l->prim;
-	while (atual!=NULL) {
-	proxima = atual->proxima;		
-		while (proxima!=NULL) {
-			if (RetornaPeso(proxima->arvore)<RetornaPeso(atual->arvore)) {
-			node * aux;
-			aux = atual->arvore;
-			atual->arvore = proxima->arvore;
-			proxima->arvore = aux;
-			}
-			proxima = proxima->proxima;
-		}
-		atual = atual->proxima;
-	}
-}
-
 void ImprimeLista(lista* l){
 	tCell* celula = l->prim;
 	while (celula!=NULL) {
@@ -121,19 +141,9 @@ int RetornaTam(lista * l){
 	return l->tam;
 }
 
-
-node * SomaDuasPrimeirasArvores(lista *l, node **t1, node **t2){
-	*t1 = l->prim->arvore;
-	*t2= l->prim->proxima->arvore;
-	node *tr = CriaArvore('\0', RetornaPeso(*t1) + RetornaPeso(*t2), *t1, *t2);
-	return tr;
-}
-
-
 node * ObtemPrimeiraArvore(lista *l){
 	return l->prim->arvore;
 }
-
 
 void LiberaListaArvores(lista *l){
 	tCell *atual=l->prim;
