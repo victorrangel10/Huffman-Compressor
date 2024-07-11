@@ -98,44 +98,19 @@ void transforma_cabecalho_em_string(char *string, bitmap *bm, int *index)
     *index = i;
 }
 
-/* bitmap *LeMegaByteDoArquivo(FILE *arqbin, int index)
-{
-    unsigned char* byte;
-    bitmap *bm = bitmapInit(MEGABYTE);
-
-
-    for (size_t i = ; i < MEGABYTE; i++)
-    {
-        char c = fgetc(arqbin);
-        if (c==EOF)
-        {
-            printf("leu eof\n");
-            break;
-        }
-
-        for (size_t j = 7; j >= 0; j--)
-        {
-            bitmapAppendLeastSignificantBit(bm, (c >> i) & 1);
-        }
-
-    }
-
-    return bm;
-} */
-
 bitmap *LeMegaByteDoArquivo(FILE *arqbin)
 {
     int c;
 
     bitmap *bm = bitmapInit(MEGABYTE);
-    
-    for (size_t i = 0; i < MEGABYTE/8; i++)
+    bitmapClear(bm);
+
+    for (size_t i = 0; i < MEGABYTE / 8; i++)
     {
         c = fgetc(arqbin);
         if (c == EOF)
         {
-            printf("leu eof\n");
-            break;
+           // printf("leu eof\n");
         }
 
         for (int j = 7; j >= 0; j--)
@@ -157,16 +132,17 @@ void decodifica_textos(FILE *arqbin, bitmap *bm, int index, int tam, char codigo
     {
         trocando = 0;
 
-        if (index > bitmapGetLength(bm) - 40)
+        if (index > bitmapGetLength(bm) - 200)
         {
             trocando = 1;
         }
 
         codigo[j] = bitmapGetBit(bm, index) + '0';
         codigo[j + 1] = '\0';
+
         if (trocando)
         {
-            printf("codigo atual eh:%s\n", codigo);
+           // printf("codigo atual eh:%s\n", codigo);
         }
         j++;
 
@@ -253,7 +229,11 @@ int main(int argc, char *argv[])
 
     decodifica_textos(arq, bm, index, ASCII_SIZE, codigos, arqtxt);
 
-    bitmapLibera(bm);
+    if (bitmapGetLength(bm) > 0)
+    {
+        bitmapLibera(bm);
+    }
+
     fclose(arqtxt);
     fclose(arq);
     return 0;

@@ -20,4 +20,5 @@ void bitmapAppendLeastSignificantBit(bitmap* bm, unsigned char bit);
 void bitmapLibera (bitmap* bm);
 void bitmap_append_char(bitmap * bm, unsigned char ch);
 void correctByte(bitmap*bm);
+void bitmapClear(bitmap* bm);
 #endif /*BITMAP_H_*/

@@ -113,20 +113,58 @@ int main(int argc, char *argv[])
 
     rewind(arqtxt);
 
+    int trocou = 0, trocando = 0;
+
     while ((caractere = fgetc(arqtxt)) != EOF)
     {
+        trocou = 0;
+
+        if (trocou || trocando)
+        {
+            printf("caracter procurado: '%c' (%s)\n", caractere, codigos[caractere]);
+        }
+
+        if (bitmapGetLength(bm) >= MEGABYTE - 200)
+        {
+            trocando = 1;
+        }
+
         // escreve cada bit do codigo de um caracter no bitmap
         for (size_t j = 0; codigos[caractere][j] != '\0'; j++)
         {
+
+            // debug
+            if (trocando)
+            {
+                trocando++;
+                if (trocando > 200)
+                {
+                    trocando = 0;
+                    printf("--- ACABOU TRECHO ---  \n");
+                }
+            }
             //  printf("%c", (unsigned char)codigos[caractere][j]);
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
             // se chegar perto de do MB, dumpa e cria um novo
         }
+
         if (bitmapGetLength(bm) >= MEGABYTE - 100)
         {
+            printf("TROCOU BM\n");
             fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+
+            //debugging
+            printf(" FIRST CONTENTS - ");
+            for (size_t k =  0; k < 30; k++)
+            {
+                printf("%c", bitmapGetBit(bm,k) + '0');
+            }
+            printf("\n");
+
+            //libera
             bitmapLibera(bm);
             bm = bitmapInit(MEGABYTE);
+            trocou = 1;
         }
     }
     // coloca o caractere de final

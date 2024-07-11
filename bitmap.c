@@ -90,6 +90,23 @@ unsigned char bitmapGetBit(bitmap* bm, unsigned int index) // index in bits
 	return (bm->contents[index/8] >> (7-(index%8))) & 0x01;
 }
 
+
+/**
+ * Limpa todos os bits do mapa de bits, definindo-os para 0.
+ * @param bm O mapa de bits.
+ */
+void bitmapClear(bitmap* bm) {
+    if (bm == NULL || bm->contents == NULL) {
+        fprintf(stderr, "Erro: bitmap ou bitmap->contents é NULL.\n");
+        return;
+    }
+    unsigned int max_sizeInBytes = (bm->max_size + 7) / 8;
+    for (unsigned int i = 0; i < max_sizeInBytes; i++) {
+        bm->contents[i] = 0;
+    }
+    bm->length = 0;
+}
+
 /**
  * Modifica o valor do bit na posicao index.
  * @param bm O mapa de bits.
