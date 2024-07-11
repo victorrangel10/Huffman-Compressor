@@ -5,7 +5,6 @@
 #include "listaArvores.h"
 #define ASCII_SIZE 127
 #define MEGABYTE 8388608
-#define BM_TAM MEGABYTE-100
 
 void reconstroi_tabela(char *string, int size, char codigos[size][size], char codigo_atual[size], int profundidade, int *pos)
 {
@@ -96,79 +95,111 @@ void transforma_cabecalho_em_string(char *string, bitmap *bm, int *index)
     }
 
     string[falsoi] = '\0';
-    printf("%s\n", string);
     *index = i;
 }
 
+/* bitmap *LeMegaByteDoArquivo(FILE *arqbin, int index)
+{
+    unsigned char* byte;
+    bitmap *bm = bitmapInit(MEGABYTE);
 
+
+    for (size_t i = ; i < MEGABYTE; i++)
+    {
+        char c = fgetc(arqbin);
+        if (c==EOF)
+        {
+            printf("leu eof\n");
+            break;
+        }
+
+        for (size_t j = 7; j >= 0; j--)
+        {
+            bitmapAppendLeastSignificantBit(bm, (c >> i) & 1);
+        }
+
+    }
+
+    return bm;
+} */
 
 bitmap *LeMegaByteDoArquivo(FILE *arqbin)
 {
-    unsigned char byte;
-    // cria bitmap com tamanho BM_TAM
-    bitmap *bm = bitmapInit((unsigned int)BM_TAM);
+    int c;
 
-    int counter=0,flag=0;
-
-    /*pega byte a byte do arquivo comprimido ate o tamanho do bitmap ser igual a BM_TAM
-     ou seja, encher o bitmap */
-
-    while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1 && !flag)
-    {
-        //escreve o byte bit a bit
-        for (int i = 7; i >= 0; i--)
-        {
-            //printf("colocando bit %d\n",counter);
-            if (bitmapGetLength(bm) < BM_TAM)
-            {
-                 bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
-            }else{
-                printf("acabou o espaco no bm\n");
-                flag=1;
-                break;
-            }
-            counter++;
-        }
+    bitmap *bm = bitmapInit(MEGABYTE);
     
+    for (size_t i = 0; i < MEGABYTE/8; i++)
+    {
+        c = fgetc(arqbin);
+        if (c == EOF)
+        {
+            printf("leu eof\n");
+            break;
+        }
+
+        for (int j = 7; j >= 0; j--)
+        {
+            // Obtém o bit j do caractere c e o adiciona ao bitmap
+            unsigned char bit = (c >> j) & 1;
+            bitmapAppendLeastSignificantBit(bm, bit);
+        }
     }
     return bm;
 }
 
-void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos[tam][tam],FILE * arqsaida)
+void decodifica_textos(FILE *arqbin, bitmap *bm, int index, int tam, char codigos[tam][tam], FILE *arqsaida)
 {
     char codigo[1000];
-    int i = 0, j = 0, found_end_char=0;
-
+    int i = 0, j = 0, found_end_char = 0;
+    int trocando = 0;
     while (!found_end_char)
     {
-       if (index == BM_TAM) {
-            fprintf(arqsaida," -- vai trocar bm agora --");
-            bitmapLibera(bm);
-            bm = LeMegaByteDoArquivo(arqbin);
-            index = 0;
-           
-        }
+        trocando = 0;
 
+        if (index > bitmapGetLength(bm) - 40)
+        {
+            trocando = 1;
+        }
 
         codigo[j] = bitmapGetBit(bm, index) + '0';
         codigo[j + 1] = '\0';
-
+        if (trocando)
+        {
+            printf("codigo atual eh:%s\n", codigo);
+        }
         j++;
-        index++;
 
         for (size_t i = 0; i < tam; i++)
         {
             if (eh_igual_codigo(codigo, codigos[i]))
             {
-                if(i==3){
+                if (i == 3)
+                {
                     printf("CHEGOU NO FINAL\n");
-                    found_end_char=1;
+                    found_end_char = 1;
                     break;
                 }
-                fputc(i,arqsaida);
-              //  printf("%c", i);
+                if (trocando)
+                {
+                    printf("printando %c (%s)\n", i, codigo);
+                }
+                fputc(i, arqsaida);
+                // printf("%c", i);
                 j = 0;
             }
+        }
+
+        index++;
+
+        if (index == MEGABYTE)
+        {
+            printf("tentou trocar\n");
+            bitmapLibera(bm);
+            fprintf(arqsaida, "trocou bm");
+            bm = LeMegaByteDoArquivo(arqbin);
+
+            index = 0;
         }
     }
 }
@@ -196,13 +227,13 @@ int main(int argc, char *argv[])
     }
 
     int pos = 0;
-    
+
     bitmap *bm = LeMegaByteDoArquivo(arq);
-   
+
     int index = 0;
 
     // a partir do bitmap lido, transforma conteudo em string capaz de gerar arvore ou tabela de codificacao
-    /*  `index` eh o indice onde comeca o conteudo do arquivo, imediatamente apos o cabecalho*/
+    /*  index eh o indice onde comeca o conteudo do arquivo, imediatamente apos o cabecalho*/
 
     // transformar isso aqui em "get cabecalho em string"
     transforma_cabecalho_em_string(stringFinal, bm, &index);
@@ -216,11 +247,11 @@ int main(int argc, char *argv[])
     {
         if (codigos[i][0] != '\0')
         {
-            printf("Caractere %c (%d): %s\n", i,i, codigos[i]);
+            printf("Caractere %c (%d): %s\n", i, i, codigos[i]);
         }
     }
 
-    decodifica_textos(arq,bm, index, ASCII_SIZE, codigos, arqtxt);
+    decodifica_textos(arq, bm, index, ASCII_SIZE, codigos, arqtxt);
 
     bitmapLibera(bm);
     fclose(arqtxt);

@@ -1,10 +1,20 @@
 #include <stdio.h>
-
+#include <string.h>
 #include "arvore.h"
 #include "bitmap.h"
 #include "listaArvores.h"
 #define ASCII_SIZE 127
 #define MEGABYTE 8388608
+
+int eh_igual_codigo(char *codigo, char *string)
+{
+    if (strcmp(codigo, string) == 0)
+    {
+        return 1;
+    }
+    else
+        return 0;
+}
 
 void LeString(char *frase, int pesos[ASCII_SIZE], lista *lista)
 {
@@ -29,6 +39,80 @@ void CriaArvoreOtima(lista *listaArvores)
             InsereFinalLista(listaArvores, tr);
         }
     }
+}
+
+void escreve_conteudo(bitmap *bm, FILE *arqtxt, int tam, char codigos[tam][tam], FILE *arqbin)
+{
+    int trocou = 0;
+    int index = bitmapGetLength(bm), trocando = 0;
+    char codigo[1000];
+    int o = 0, z = 0;
+    char caractere;
+
+    while ((caractere = fgetc(arqtxt)) != EOF)
+    {
+
+        // escreve cada bit do codigo de um caracter no bitmap
+        for (size_t j = 0; codigos[caractere][j] != '\0'; j++)
+        {
+            if (trocou)
+            {
+                trocou++;
+                if (trocou >= 20)
+                {
+                    trocou = 0;
+                }
+            }
+            if (bitmapGetLength(bm) > MEGABYTE - 20)
+            {
+                trocando = 1;
+            }
+
+            if (trocando || trocou)
+            {
+                printf("buscando o caracter '%c'\n", caractere);
+            }
+
+            bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
+            // se chegar perto de do MB, dumpa e cria um novo
+
+            if (trocando || trocou)
+            {
+                printf("Codigo atual eh: \n");
+                for (size_t i = 0; i < j; i++)
+                {
+                    printf("%c", codigos[caractere][i]);
+                }
+                printf("\n");
+            }
+        }
+
+        if (bitmapGetLength(bm) + 8 >= MEGABYTE)
+        {
+            fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+            bitmapLibera(bm);
+            bm = bitmapInit(MEGABYTE);
+            trocando = 0;
+            trocou = 1;
+        }
+    }
+}
+
+void cria_array_pesos(int *pesos, FILE *arqtxt)
+{
+    int caractere;
+    while ((caractere = fgetc(arqtxt)) != EOF)
+    {
+        pesos[caractere]++;
+    }
+}
+
+int return_file_size(FILE *arq)
+{
+    fseek(arq, 0, SEEK_END);
+    int size = ftell(arq);
+
+    return size;
 }
 
 int main(int argc, char *argv[])
@@ -63,17 +147,7 @@ int main(int argc, char *argv[])
     char codigos[ASCII_SIZE][ASCII_SIZE] = {0};
 
     // le o input e determina os pesos de cada letra
-    /* printf("string lida do arquivo:\n"); */
-    int caractere;
-    while ((caractere = fgetc(arqtxt)) != EOF)
-    {
-        /* putchar(caractere); // Imprime o caractere na tela */
-        pesos[caractere]++;
-    }
-
-    // busca o fim do arquivo para saber o tamanho dele
-    fseek(arqtxt, 0, SEEK_END);
-    size = ftell(arqtxt);
+    cria_array_pesos(pesos, arqtxt);
 
     // Adiciona caracteres usados à lista de árvores
     for (size_t i = 0; i < ASCII_SIZE; i++)
@@ -84,11 +158,14 @@ int main(int argc, char *argv[])
             InsereFinalLista(listaArvores, arvore);
         }
     }
+
     // cria caractere ETX para comunicar o fim do texto
     node *arvore = CriaArvore(3, 1, CriaVazio(), CriaVazio());
+
     InsereFinalLista(listaArvores, arvore);
 
     OrdenaLista(listaArvores);
+
     CriaArvoreOtima(listaArvores);
 
     // gera os codigos binarios para cada caractere no texto
@@ -113,22 +190,8 @@ int main(int argc, char *argv[])
 
     rewind(arqtxt);
 
-    while ((caractere = fgetc(arqtxt)) != EOF)
-    {
-        // escreve cada bit do codigo de um caracter no bitmap
-        for (size_t j = 0; codigos[caractere][j] != '\0'; j++)
-        {
-            //  printf("%c", (unsigned char)codigos[caractere][j]);
-            bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
-            // se chegar perto de do MB, dumpa e cria um novo
-        }
-        if (bitmapGetLength(bm) >= MEGABYTE - 100)
-        {
-            fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
-            bitmapLibera(bm);
-            bm = bitmapInit(MEGABYTE);
-        }
-    }
+    escreve_conteudo(bm, arqtxt, ASCII_SIZE, codigos, arqbin);
+
     // coloca o caractere de final
     printf("COLOCANDO FINAL\n");
     for (size_t j = 0; codigos[03][j] != '\0'; j++)
@@ -136,7 +199,6 @@ int main(int argc, char *argv[])
         printf("%c", (unsigned char)codigos[03][j]);
         bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[03][j]);
     }
-
     fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
 
     LiberaListaArvores(listaArvores);
