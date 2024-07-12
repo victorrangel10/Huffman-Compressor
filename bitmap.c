@@ -118,7 +118,7 @@ static void bitmapSetBit(bitmap* bm, unsigned int index, unsigned char bit) {
  */
 void bitmapAppendLeastSignificantBit(bitmap* bm, unsigned char bit) {
 	// verificar se bm->length<bm->max_size, caso contrario, o bitmap esta' cheio
-	assert(bm->length<bm->max_size, "Tamanho maximo excedido no mapa de bits.");
+	assert(bm->length < bm->max_size, "Tamanho maximo excedido no mapa de bits.");
 	// como um bit sera' adicionado, devemos incrementar o tamanho do mapa de bits
 	bm->length++;
 	bitmapSetBit(bm, bm->length-1, bit);

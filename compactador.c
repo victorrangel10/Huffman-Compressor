@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     lista *listaArvores = FazListaHuff(pesos);
     node* abHuff = CriaArvoreHuff(listaArvores);
     int alturaAbHuff = RetornaAlturaArvore(abHuff);
-    printf("altura: %d\n", alturaAbHuff);
+    // printf("altura: %d\n", alturaAbHuff);
 
 
     // arquivo de saida compactado
@@ -81,56 +81,21 @@ int main(int argc, char *argv[])
 
     rewind(arqtxt);
 
-    // int trocou = 0, trocando = 0;
     while ((caractere = fgetc(arqtxt)) != EOF) {
-        // trocou = 0;
-
-        // if (trocou || trocando)
-        //     printf("caracter procurado: '%c' (%s)\n", caractere, codigos[caractere]);
-
-        // if (bitmapGetLength(bm) >= MEGABYTE - 200)
-            // trocando = 1;
 
         // escreve cada bit do codigo de um caracter no bitmap
         for (size_t j = 0; codigos[caractere][j] != '\0'; j++) {
-            // debug
-            // if(trocando) {
-            //     trocando++;
-            //     if (trocando > 200) {
-            //         trocando = 0;
-            //         // printf("--- ACABOU TRECHO ---  \n");
-            //     }
-            // }
-            //  printf("%c", (unsigned char)codigos[caractere][j]);
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
-            // se chegar perto de do MB, dumpa e cria um novo
-        }
-
-        if (bitmapGetLength(bm) >= MEGABYTE - alturaAbHuff) {
-        // a subtração pela altura garante que nunca será necessário dividir o código de um caracter entre bitmaps,
-        // uma vez que um novo é criado antes que isso possa ocorrer.
-
-            // printf("TROCOU BM\n");
-            fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
-
-            //debugging
-            // printf(" FIRST CONTENTS - ");
-            // for (size_t k =  0; k < 30; k++)
-            //     printf("%c", bitmapGetBit(bm,k) + '0');
-            // printf("\n");
-
-            //libera
-            bitmapLibera(bm);
-            bm = bitmapInit(MEGABYTE);
-            // trocou = 1;
+            if(bitmapGetLength(bm) == bitmapGetMaxSize(bm)) {
+                fwrite(bitmapGetContents(bm), bitmapGetLength(bm)/8, 1, arqbin);
+                bitmapLibera(bm);
+                bm = bitmapInit(MEGABYTE);
+            }
         }
     }
     // coloca o caractere de final
-    // printf("COLOCANDO FINAL\n");
-    for (size_t j = 0; codigos[03][j] != '\0'; j++) {
-        // printf("%c", (unsigned char)codigos[03][j]);
-        bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[03][j]);
-    }
+    for (size_t j = 0; codigos[3][j] != '\0'; j++)
+        bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[3][j]);
 
     fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
 

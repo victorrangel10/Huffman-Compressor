@@ -82,13 +82,13 @@ void EscreveArvore(bitmap *bm, node *arvore)
 {
     if (EhFolha(arvore))
     {
-        printf("1%c", RetornaLetra(arvore));
+        // printf("1%c", RetornaLetra(arvore));
         bitmapAppendLeastSignificantBit(bm, (unsigned char)'1');
         bitmap_append_char(bm, (unsigned char)RetornaLetra(arvore));
     }
     else
     {
-        printf("0");
+        // printf("0");
         bitmapAppendLeastSignificantBit(bm, (unsigned char)'0');
         EscreveArvore(bm, arvore->left_node);
         EscreveArvore(bm, arvore->right_node);
@@ -96,7 +96,6 @@ void EscreveArvore(bitmap *bm, node *arvore)
 }
 
 void EscreveCabecalho(bitmap *bm, node *arvore) {
-    printf("\nArvore escrita em binario: \n");
     EscreveArvore(bm, arvore);
 
     /* coloca dois bits '1' para indicar que o cabecalho acabou*/

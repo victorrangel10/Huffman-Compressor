@@ -5,9 +5,10 @@
 #include "listaArvores.h"
 #define ASCII_SIZE 127
 #define MEGABYTE 8388608
-#define BM_TAM MEGABYTE-100
+// #define BM_TAM MEGABYTE-512
+// #define BM_TAM 8388608
 
-void RecontroiCodicos(char *string, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *pos) {
+void RecontroiCodigos(char *string, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *pos) {
     if (string[*pos] == '\0') return;
 
     if (string[*pos] == '1') {
@@ -21,10 +22,10 @@ void RecontroiCodicos(char *string, int l, int c, char codigos[l][c], char codig
         (*pos)++;
         // manda pra esquerda
         codigo_atual[profundidade] = '0';
-        RecontroiCodicos(string, l, c, codigos, codigo_atual, profundidade + 1, pos);
+        RecontroiCodigos(string, l, c, codigos, codigo_atual, profundidade + 1, pos);
         // madnda pra direita
         codigo_atual[profundidade] = '1';
-        RecontroiCodicos(string, l, c, codigos, codigo_atual, profundidade + 1, pos);
+        RecontroiCodigos(string, l, c, codigos, codigo_atual, profundidade + 1, pos);
     }
 }
 
@@ -83,45 +84,65 @@ void TransformaCabecalhoEmString(char *string, bitmap *bm, int *index) {
     }
 }
 
-
-
 bitmap *LeMegaByteDoArquivo(FILE *arqbin) {
     unsigned char byte;
     // cria bitmap com tamanho BM_TAM
-    bitmap *bm = bitmapInit((unsigned int)BM_TAM);
+    bitmap *bm = bitmapInit((unsigned int)MEGABYTE);
 
-    int counter=0,flag=0;
+    int flagFinaliza = 0;
 
     /*pega byte a byte do arquivo comprimido ate o tamanho do bitmap ser igual a BM_TAM
      ou seja, encher o bitmap */
 
-    while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1 && !flag) {
+    while (!flagFinaliza && fread(&byte, sizeof(unsigned char), 1, arqbin) == 1) {
         //escreve o byte bit a bit
+        // if(bitmapGetLength(bm) + 8 >= BM_TAM) break;
         for (int i = 7; i >= 0; i--) {
             //printf("colocando bit %d\n",counter);
-            if (bitmapGetLength(bm) < BM_TAM)
-                 bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
+            if (bitmapGetLength(bm) < MEGABYTE)
+                bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
 
             else {
                 printf("acabou o espaco no bm\n");
-                flag=1;
+                flagFinaliza = 1;
                 break;
             }
-
-            counter++;
         }
     }
     return bm;
 }
 
-void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char codigos[l][c],FILE * arqsaida) {
-    char codigo[1000];
-    int i = 0, j = 0, found_end_char=0;
+// void LeBitsEAnexa(bitmap* bm, int qtdBits, FILE* arqbin) {
+//     unsigned char byte;
 
-    while (!found_end_char)
-    {
-       if (index == BM_TAM) {
-            fprintf(arqsaida," -- vai trocar bm agora --");
+//     int b = 0, finaliza = 0;
+//     // int qtdBytes = (qtdBits + 7) / 8;
+
+//     /*pega byte a byte do arquivo comprimido ate o tamanho do bitmap ser igual a BM_TAM
+//      ou seja, encher o bitmap */
+//     while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1 && !finaliza) {
+//         //escreve o byte bit a bit
+//         for (int i = 7; i >= 0; i--) {
+//             b++;
+//             //printf("colocando bit %d\n",counter);
+//             if(b < bitmapGetLength(bm))
+//                 bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
+//             else
+//                 finaliza = 1;
+//                 break;
+//         }
+//         b++;
+//     }
+// }
+
+void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char codigos[l][c],FILE * arqsaida) {
+    char codigo[c];
+    int i = 0, j = 0, found_end_char = 0;
+
+    while (!found_end_char) {
+       if (index == MEGABYTE) {
+            fprintf(arqsaida,"|-|");
+
             bitmapLibera(bm);
             bm = LeMegaByteDoArquivo(arqbin);
             index = 0;
@@ -135,22 +156,20 @@ void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char cod
 
         for (size_t i = 0; i < ASCII_SIZE; i++) {
             if (EhIgualCodigo(codigo, codigos[i])) {
-                if(i==3){
-                    printf("CHEGOU NO FINAL\n");
+                if(i == 3) {
+                    found_end_char = 1;
+                    fputc(i,arqsaida);
                     bitmapLibera(bm);
-                    found_end_char=1;
                     break;
                 }
                 fputc(i,arqsaida);
-              //  printf("%c", i);
                 j = 0;
             }
         }
     }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     // abrindo arquivos:
     if(argc <= 1) {
         printf("ERRO: arquivo compactado não foi informado.\n");
@@ -187,14 +206,10 @@ int main(int argc, char *argv[])
     int index = 0;
     TransformaCabecalhoEmString(stringFinal, bm, &index);
 
-    // printf(" index eh %d\n",index);
 
     // transforma a string lida do cabecalho na tabela de codificacao
     int pos = 0;
-    RecontroiCodicos(stringFinal, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
-
-    // for (int i = 0; i < ASCII_SIZE; i++)
-    //     if (codigos[i][0] != '\0') printf("Caractere %c (%d): %s\n", i,i, codigos[i]);
+    RecontroiCodigos(stringFinal, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
 
     DecodificaTexto(arq,bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqtxt);
 
