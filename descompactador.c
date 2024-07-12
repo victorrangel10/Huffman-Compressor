@@ -7,103 +7,85 @@
 #define MEGABYTE 8388608
 #define BM_TAM MEGABYTE-100
 
-void reconstroi_tabela(char *string, int size, char codigos[size][size], char codigo_atual[size], int profundidade, int *pos)
-{
-    if (string[*pos] == '\0')
-    {
-        return;
-    }
+void RecontroiCodicos(char *string, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *pos) {
+    if (string[*pos] == '\0') return;
 
-    if (string[*pos] == '1')
-    {
+    if (string[*pos] == '1') {
         (*pos)++;
         codigo_atual[profundidade] = '\0';
         char caracter = string[(*pos)];
         strcpy(codigos[(unsigned char)caracter], codigo_atual);
         (*pos)++;
     }
-    else if (string[*pos] == '0')
-    {
+    else if (string[*pos] == '0') {
         (*pos)++;
         // manda pra esquerda
         codigo_atual[profundidade] = '0';
-        reconstroi_tabela(string, size, codigos, codigo_atual, profundidade + 1, pos);
+        RecontroiCodicos(string, l, c, codigos, codigo_atual, profundidade + 1, pos);
         // madnda pra direita
         codigo_atual[profundidade] = '1';
-        reconstroi_tabela(string, size, codigos, codigo_atual, profundidade + 1, pos);
+        RecontroiCodicos(string, l, c, codigos, codigo_atual, profundidade + 1, pos);
     }
 }
 
-int eh_igual_codigo(char *codigo, char *string)
-{
-    if (strcmp(codigo, string) == 0)
-    {
-        return 1;
-    }
-    else
-        return 0;
+int EhIgualCodigo(char *codigo, char *string) {
+    return !strcmp(codigo, string);
 }
 
-void transforma_cabecalho_em_string(char *string, bitmap *bm, int *index)
-{
-    /* como i pode ser incrementado nos valores 1 e 8, o "falsoi"
+void TransformaCabecalhoEmString(char *string, bitmap *bm, int *index) {
+    /* como i pode ser incrementado nos valores 1 e 8, o "falsoI"
     vai ser incrementado apenas em 1 para contar as iteracoes*/
 
-    int flag = 0, i = 0, falsoi = 0;
+    int flag = 0, i = 0, falsoI = 0;
     unsigned char bitAtual = '\0';
 
-    while (!flag)
-    {
+    while (1) {
         bitAtual = bitmapGetBit(bm, i) + '0';
         //  printf("LI o bit %c\n",bitmapGetBit(bm, i) + '0');
-        falsoi++;
+        falsoI++;
 
-        if (bitAtual == '0')
-        {
+        if (bitAtual == '0') {
             //  printf("entrou no 0\n");
-            string[falsoi - 1] = '0';
+            string[falsoI - 1] = '0'; // representação de nó não folha
             i++;
             continue;
         }
-        else if (bitAtual == '1')
-        {
-            // nenhum char comeca com 1, por isso, a sequencia 11 se torna impossivel, sendo utilizada para indicar o fim do cabecalho
-            if ((bitmapGetBit(bm, i + 1) + '0') == '1')
-            {
-                flag = 1;
-                i += 2;
+        else if (bitAtual == '1') { // nó folha ou possível condição de parada
+
+            if ((bitmapGetBit(bm, i + 1) + '0') == '1') {
+            // condição de parada: encontrar a sequência '11' (indica o fim da árvore escrita no cabeçalho)
+                string[falsoI] = '\0';
+                // printf("%s\n", string);
+                *index = i;
                 // printf("chegou no final do cabecalho\n");
                 break;
             }
 
+            string[falsoI - 1] = '1'; // representação do nó folha
+
+            // leitura do caracter contido no nó folha
             unsigned char byte = 0x00;
             int j;
-            for (j = 0; j < 8; j++)
-            {
+            for (j = 0; j < 8; j++) {
                 unsigned char bit = bitmapGetBit(bm, i + 1 + j);
                 //  printf("Mandando o bit %c para construir a letra\n",bitmapGetBit(bm, i+1+j) + '0');
                 byte |= (bit << (7 - j));
                 // printf("byte eh %02X\n",byte);
             }
-            string[falsoi - 1] = '1';
-            falsoi++;
-            string[falsoi - 1] = byte;
+            
+            falsoI++;
+            string[falsoI - 1] = byte;
 
             // printf("ENVIANDO A LETRA %b\n",byte);
             // printf("ENVIANDO A LETRA NA STRING %c\n",string[falsoi-1]);
             i += j + 1;
         }
     }
-
-    string[falsoi] = '\0';
-    printf("%s\n", string);
-    *index = i;
 }
 
 
 
-bitmap *LeMegaByteDoArquivo(FILE *arqbin)
-{
+bitmap *LeMegaByteDoArquivo(FILE *arqbin) {
     unsigned char byte;
     // cria bitmap com tamanho BM_TAM
     bitmap *bm = bitmapInit((unsigned int)BM_TAM);
@@ -113,29 +95,26 @@ bitmap *LeMegaByteDoArquivo(FILE *arqbin)
     /*pega byte a byte do arquivo comprimido ate o tamanho do bitmap ser igual a BM_TAM
      ou seja, encher o bitmap */
 
-    while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1 && !flag)
-    {
+    while (fread(&byte, sizeof(unsigned char), 1, arqbin) == 1 && !flag) {
         //escreve o byte bit a bit
-        for (int i = 7; i >= 0; i--)
-        {
+        for (int i = 7; i >= 0; i--) {
             //printf("colocando bit %d\n",counter);
             if (bitmapGetLength(bm) < BM_TAM)
-            {
                  bitmapAppendLeastSignificantBit(bm, (byte >> i) & 1);
-            }else{
+
+            else {
                 printf("acabou o espaco no bm\n");
                 flag=1;
                 break;
             }
+
             counter++;
         }
-    
     }
     return bm;
 }
 
-void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos[tam][tam],FILE * arqsaida)
-{
+void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char codigos[l][c],FILE * arqsaida) {
     char codigo[1000];
     int i = 0, j = 0, found_end_char=0;
 
@@ -146,9 +125,7 @@ void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos
             bitmapLibera(bm);
             bm = LeMegaByteDoArquivo(arqbin);
             index = 0;
-           
         }
-
 
         codigo[j] = bitmapGetBit(bm, index) + '0';
         codigo[j + 1] = '\0';
@@ -156,12 +133,11 @@ void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos
         j++;
         index++;
 
-        for (size_t i = 0; i < tam; i++)
-        {
-            if (eh_igual_codigo(codigo, codigos[i]))
-            {
+        for (size_t i = 0; i < ASCII_SIZE; i++) {
+            if (EhIgualCodigo(codigo, codigos[i])) {
                 if(i==3){
                     printf("CHEGOU NO FINAL\n");
+                    bitmapLibera(bm);
                     found_end_char=1;
                     break;
                 }
@@ -175,6 +151,7 @@ void decodifica_textos(FILE* arqbin,bitmap *bm, int index, int tam, char codigos
 
 int main(int argc, char *argv[])
 {
+    // abrindo arquivos:
     if(argc <= 1) {
         printf("ERRO: arquivo compactado não foi informado.\n");
         return EXIT_FAILURE;
@@ -184,9 +161,6 @@ int main(int argc, char *argv[])
         printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
         return EXIT_FAILURE;
     }
-    
-    char stringFinal[100000];
-
 
     char nome[21];
     sscanf(argv[1], "%[^.]", nome);
@@ -197,37 +171,34 @@ int main(int argc, char *argv[])
         printf("ERRO: não foi possível abriar o arquivo ./%s\n", nomeTxt);
         return EXIT_FAILURE;
     }
+    // -------------------
 
-    char codigos[ASCII_SIZE][ASCII_SIZE] = {0}, codigo_atual[ASCII_SIZE] = {0};
+    int alturaAbHuff = 0;
+    fread(&alturaAbHuff, sizeof(int), 1, arq);
+    printf("altura: %d\n", alturaAbHuff);
 
-    int pos = 0;
-    
+    char codigo_atual[alturaAbHuff];
+    char (*codigos)[alturaAbHuff] = calloc (ASCII_SIZE*alturaAbHuff, sizeof(char));
+
     bitmap *bm = LeMegaByteDoArquivo(arq);
-   
-    int index = 0;
-
-    // a partir do bitmap lido, transforma conteudo em string capaz de gerar arvore ou tabela de codificacao
-    /*  `index` eh o indice onde comeca o conteudo do arquivo, imediatamente apos o cabecalho*/
 
     // transformar isso aqui em "get cabecalho em string"
-    transforma_cabecalho_em_string(stringFinal, bm, &index);
+    char stringFinal[100000] = {0};
+    int index = 0;
+    TransformaCabecalhoEmString(stringFinal, bm, &index);
 
     // printf(" index eh %d\n",index);
 
     // transforma a string lida do cabecalho na tabela de codificacao
-    reconstroi_tabela(stringFinal, ASCII_SIZE, codigos, codigo_atual, 0, &pos);
+    int pos = 0;
+    RecontroiCodicos(stringFinal, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
 
-    for (int i = 0; i < ASCII_SIZE; i++)
-    {
-        if (codigos[i][0] != '\0')
-        {
-            printf("Caractere %c (%d): %s\n", i,i, codigos[i]);
-        }
-    }
+    // for (int i = 0; i < ASCII_SIZE; i++)
+    //     if (codigos[i][0] != '\0') printf("Caractere %c (%d): %s\n", i,i, codigos[i]);
 
-    decodifica_textos(arq,bm, index, ASCII_SIZE, codigos, arqtxt);
+    DecodificaTexto(arq,bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqtxt);
 
-    bitmapLibera(bm);
+    free(codigos);
     fclose(arqtxt);
     fclose(arq);
     return 0;

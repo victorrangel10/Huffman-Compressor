@@ -6,16 +6,6 @@
 #define ASCII_SIZE 128
 #define MEGABYTE 8388608
 
-void LeString(char *frase, int pesos[ASCII_SIZE], lista *lista)
-{
-    char letra;
-    for (int i = 0; frase[i] != '\0'; i++)
-    {
-        letra = frase[i];
-        pesos[letra]++;
-    }
-}
-
 lista* FazListaHuff(int* pesos) {
     lista* l = CriaLista();
     node* a = NULL;
@@ -31,7 +21,6 @@ lista* FazListaHuff(int* pesos) {
     
     return l;
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +43,9 @@ int main(int argc, char *argv[])
 
     lista *listaArvores = FazListaHuff(pesos);
     node* abHuff = CriaArvoreHuff(listaArvores);
+    int alturaAbHuff = RetornaAlturaArvore(abHuff);
+    printf("altura: %d\n", alturaAbHuff);
+
 
     // arquivo de saida compactado
     char nome[31];
@@ -64,16 +56,18 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    long size = ftell(arqtxt);
-    char codigoAtual[ASCII_SIZE];
-    char codigos[ASCII_SIZE][ASCII_SIZE] = {0};
+    fwrite(&alturaAbHuff, sizeof(int), 1, arqbin);
+
+    char codigoAtual[alturaAbHuff];
+    char (*codigos)[alturaAbHuff] = calloc (ASCII_SIZE*alturaAbHuff, sizeof(char));
+
+    // gera os codigos binarios para cada caractere no texto
+    GeraCodigos(abHuff, codigoAtual, 0, ASCII_SIZE, alturaAbHuff, codigos);
 
     // busca o fim do arquivo para saber o tamanho dele
     fseek(arqtxt, 0, SEEK_END);
-    
 
-    // gera os codigos binarios para cada caractere no texto
-    GeraCodigos(abHuff, codigoAtual, 0, ASCII_SIZE, codigos);
+    long size = ftell(arqtxt);
 
     // printa os codigos gerados
     // printf("\n");
@@ -87,65 +81,61 @@ int main(int argc, char *argv[])
 
     rewind(arqtxt);
 
-    int trocou = 0, trocando = 0;
+    // int trocou = 0, trocando = 0;
     while ((caractere = fgetc(arqtxt)) != EOF) {
-        trocou = 0;
+        // trocou = 0;
 
-        if (trocou || trocando)
-            printf("caracter procurado: '%c' (%s)\n", caractere, codigos[caractere]);
+        // if (trocou || trocando)
+        //     printf("caracter procurado: '%c' (%s)\n", caractere, codigos[caractere]);
 
-        if (bitmapGetLength(bm) >= MEGABYTE - 200)
-            trocando = 1;
+        // if (bitmapGetLength(bm) >= MEGABYTE - 200)
+            // trocando = 1;
 
         // escreve cada bit do codigo de um caracter no bitmap
-        for (size_t j = 0; codigos[caractere][j] != '\0'; j++)
-        {
-
+        for (size_t j = 0; codigos[caractere][j] != '\0'; j++) {
             // debug
-            if (trocando)
-            {
-                trocando++;
-                if (trocando > 200)
-                {
-                    trocando = 0;
-                    printf("--- ACABOU TRECHO ---  \n");
-                }
-            }
+            // if(trocando) {
+            //     trocando++;
+            //     if (trocando > 200) {
+            //         trocando = 0;
+            //         // printf("--- ACABOU TRECHO ---  \n");
+            //     }
+            // }
             //  printf("%c", (unsigned char)codigos[caractere][j]);
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
             // se chegar perto de do MB, dumpa e cria um novo
         }
 
-        if (bitmapGetLength(bm) >= MEGABYTE - 100)
-        {
-            printf("TROCOU BM\n");
+        if (bitmapGetLength(bm) >= MEGABYTE - alturaAbHuff) {
+        // a subtração pela altura garante que nunca será necessário dividir o código de um caracter entre bitmaps,
+        // uma vez que um novo é criado antes que isso possa ocorrer.
+
+            // printf("TROCOU BM\n");
             fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
 
             //debugging
-            printf(" FIRST CONTENTS - ");
-            for (size_t k =  0; k < 30; k++)
-            {
-                printf("%c", bitmapGetBit(bm,k) + '0');
-            }
-            printf("\n");
+            // printf(" FIRST CONTENTS - ");
+            // for (size_t k =  0; k < 30; k++)
+            //     printf("%c", bitmapGetBit(bm,k) + '0');
+            // printf("\n");
 
             //libera
             bitmapLibera(bm);
             bm = bitmapInit(MEGABYTE);
-            trocou = 1;
+            // trocou = 1;
         }
     }
     // coloca o caractere de final
-    printf("COLOCANDO FINAL\n");
-    for (size_t j = 0; codigos[03][j] != '\0'; j++)
-    {
-        printf("%c", (unsigned char)codigos[03][j]);
+    // printf("COLOCANDO FINAL\n");
+    for (size_t j = 0; codigos[03][j] != '\0'; j++) {
+        // printf("%c", (unsigned char)codigos[03][j]);
         bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[03][j]);
     }
 
     fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
 
     LiberaArvore(abHuff);
+    free(codigos);
     bitmapLibera(bm);
     fclose(arqbin);
     fclose(arqtxt);

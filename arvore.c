@@ -95,15 +95,15 @@ void EscreveArvore(bitmap *bm, node *arvore)
     }
 }
 
-void EscreveCabecalho(bitmap *bm, node *arvore)
-{
+void EscreveCabecalho(bitmap *bm, node *arvore) {
     printf("\nArvore escrita em binario: \n");
     EscreveArvore(bm, arvore);
+
     /* coloca dois bits '1' para indicar que o cabecalho acabou*/
-    for (size_t i = 0; i < 2; i++)
-    {
-        bitmapAppendLeastSignificantBit(bm, '1');
-    }
+    // motivo: nenhum dos primeiros 128 caracteres ASCII começam com '11' em sua codificação binária
+    bitmapAppendLeastSignificantBit(bm, '1');
+    bitmapAppendLeastSignificantBit(bm, '1');
+
     printf("\n");
 }
 
@@ -145,7 +145,7 @@ void ImprimeArvore(node *a)
 //     }
 // }
 
-void GeraCodigos(node *raiz, char *codigo_atual, int profundidade, int tam, char codigos[tam][tam])
+void GeraCodigos(node *raiz, char *codigo_atual, int profundidade, int l, int c, char codigos[l][c])
 {
     if (raiz == NULL)
         return;
@@ -160,12 +160,12 @@ void GeraCodigos(node *raiz, char *codigo_atual, int profundidade, int tam, char
     if (raiz->left_node != NULL)
     {
         codigo_atual[profundidade] = '0';
-        GeraCodigos(raiz->left_node, codigo_atual, profundidade + 1, tam, codigos);
+        GeraCodigos(raiz->left_node, codigo_atual, profundidade + 1, l, c, codigos);
     }
     // Adiciona '1' para a subárvore direita
     if (raiz->right_node != NULL)
     {
         codigo_atual[profundidade] = '1';
-        GeraCodigos(raiz->right_node, codigo_atual, profundidade + 1, tam, codigos);
+        GeraCodigos(raiz->right_node, codigo_atual, profundidade + 1, l, c, codigos);
     }
 }

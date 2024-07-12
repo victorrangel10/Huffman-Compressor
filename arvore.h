@@ -21,7 +21,9 @@ int EhFolha(node * no);
 void EscreveCabecalho(bitmap* bm,node * arvore);
 void EscreveArvore(bitmap* bm, node *arvore);
 
-void GeraCodigos(node* raiz, char* codigo_atual, int profundidade, int tam, char codigos[tam][tam]);
+// void GeraCodigos(node* raiz, char* codigo_atual, int profundidade, int tam, char codigos[tam][tam]);
+void GeraCodigos(node *raiz, char *codigo_atual, int profundidade, int l, int c, char codigos[l][c]);
+
 // void GeraCodigos(node* ab, int l, int c, char tab[l][c], char* caminhoAtual, int nivelAtual);
 
 void LiberaArvore(node *arvore);
