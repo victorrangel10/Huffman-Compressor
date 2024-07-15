@@ -4,7 +4,7 @@
 
 
 struct celula{
-	node * arvore;
+	arvBin * arvore;
 	tCell * proxima;
 };
 
@@ -25,7 +25,7 @@ int EstaVaziaLista(lista * l){
 	return l->prim==NULL;
 }
 
-void InsereLista(lista* l, node* arvore){
+void InsereLista(lista* l, arvBin* arvore){
 	l->tam++;
 	tCell* celula = malloc(sizeof(tCell));
 	celula->arvore = arvore;
@@ -59,17 +59,17 @@ void InsereLista(lista* l, node* arvore){
 	l->ult = celula;
 }
 
-node* CriaArvoreHuff(lista* l) {
+arvBin* CriaArvoreHuff(lista* l) {
 	if(EstaVaziaLista(l)) return NULL; // lista vazia;
 	if(l->prim == l->ult) { // apenas 1 elemento
-		node* ab = l->prim->arvore;
+		arvBin* ab = l->prim->arvore;
 		free(l->prim);
 		free(l);
 		return ab;
 	}
 
 	int peso = RetornaPeso(l->prim->arvore) + RetornaPeso(l->prim->proxima->arvore);
-	node* ab = CriaArvore(0, peso, l->prim->proxima->arvore, l->prim->arvore);
+	arvBin* ab = CriaArvore(0, peso, l->prim->proxima->arvore, l->prim->arvore);
 
 	tCell* aux = l->prim;
 	tCell* aux2 = l->prim->proxima;
@@ -82,7 +82,7 @@ node* CriaArvoreHuff(lista* l) {
 	return CriaArvoreHuff(l);
 }
 
-node* RetiraLista(lista * l, node * arvore){
+arvBin* RetiraLista(lista * l, arvBin * arvore){
 	tCell * anterior = NULL;
 	tCell * celulaAtual = l->prim;
 	while (celulaAtual != NULL && celulaAtual->arvore!=arvore) {
@@ -96,7 +96,7 @@ node* RetiraLista(lista * l, node * arvore){
 	//caso unico item
 	if (l->prim ==celulaAtual && celulaAtual == l->ult) {
 		l->prim = l->ult = NULL;
-		node * a = celulaAtual->arvore;
+		arvBin * a = celulaAtual->arvore;
 		free(celulaAtual);
 		return a;
 	}
@@ -104,7 +104,7 @@ node* RetiraLista(lista * l, node * arvore){
 
 	//caso primeiro item
 	if (l->prim->arvore == arvore) {
-		node* a =l->prim->arvore;
+		arvBin* a =l->prim->arvore;
 		l->prim = l->prim->proxima;
 		free(celulaAtual);
 		return a;
@@ -114,14 +114,14 @@ node* RetiraLista(lista * l, node * arvore){
 	if (l->ult->arvore == arvore) {
 		l->ult = anterior;
 		anterior->proxima = NULL;
-		node * a =celulaAtual->arvore;
+		arvBin * a =celulaAtual->arvore;
 		free(celulaAtual);
 		return a;
 	}
 
 	else {
 		anterior->proxima = celulaAtual->proxima;
-		node * a =celulaAtual->arvore;
+		arvBin * a =celulaAtual->arvore;
 		free(celulaAtual);
 		return a;
 	}
@@ -141,7 +141,7 @@ int RetornaTam(lista * l){
 	return l->tam;
 }
 
-node * ObtemPrimeiraArvore(lista *l){
+arvBin * ObtemPrimeiraArvore(lista *l){
 	return l->prim->arvore;
 }
 

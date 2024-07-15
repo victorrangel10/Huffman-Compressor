@@ -13,12 +13,12 @@ typedef struct lista lista;
 // Prototipação das funções
 lista *CriaLista();
 int EstaVaziaLista(lista *l);
-void InsereLista(lista* l, node* arvore);
-node* CriaArvoreHuff(lista* l);
-node *RetiraLista(lista *l, node *arvore);
+void InsereLista(lista* l, arvBin* arvore);
+arvBin* CriaArvoreHuff(lista* l);
+arvBin *RetiraLista(lista *l, arvBin *arvore);
 void ImprimeLista(lista *l);
 int RetornaTam(lista * l);
-node * ObtemPrimeiraArvore(lista *l);
+arvBin * ObtemPrimeiraArvore(lista *l);
 void LiberaListaArvores(lista *l);
 #endif // LISTA_H
 //
