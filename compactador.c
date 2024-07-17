@@ -15,26 +15,19 @@ lista* FazListaHuff(int* pesos) {
             InsereLista(l, a);
         }
     }
-    // cria caractere de número 129 (caractere não utilizado)
-    a = CriaArvore(3, 1, CriaArvoreVazia(), CriaArvoreVazia());
-    InsereLista(l, a);
     
     return l;
 }
 
 int main(int argc, char *argv[])
 {
-    // int a = (int)'—';
-    // printf("'—': %d\n", a);
-    // return 0;
-    
     // arquivo de entrada:
     if(argc <= 1) {
         printf("ERRO: arquivo a ser compactado não foi informado.\n");
         return EXIT_FAILURE;
     }
-    FILE* arqtxt = fopen(argv[1], "r");
-    if(arqtxt == NULL) {
+    FILE* arqSaida = fopen(argv[1], "r");
+    if(arqSaida == NULL) {
         printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
         return EXIT_FAILURE;
     }
@@ -48,6 +41,11 @@ int main(int argc, char *argv[])
     }
     // -----------------
 
+    unsigned long int qtdTotalCaracteres = 0;
+    fwrite(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin); // já reserva o espaço no arquivo
+    // o valor real será calculado ao longo do programa, sendo reescrito após o cálculo
+
+
     printf("Gerando árvore ótima de Huffman...\n");
 
     // array de ints representando a tabela ASCII que contém os pesos de cada letra
@@ -55,7 +53,7 @@ int main(int argc, char *argv[])
 
     // lê o input e determina os pesos de cada letra
     int caractere = 0;
-    while ((caractere = fgetc(arqtxt)) != EOF) pesos[caractere]++;
+    while ((caractere = fgetc(arqSaida)) != EOF) pesos[caractere]++;
 
     lista *listaArvores = FazListaHuff(pesos);
     arvBin* abHuff = CriaArvoreHuff(listaArvores);
@@ -90,10 +88,11 @@ int main(int argc, char *argv[])
     int tamCabecalho = bitmapGetLength(bm);
     fwrite(&tamCabecalho, sizeof(int), 1, arqbin);
 
-    rewind(arqtxt);
+    rewind(arqSaida);
 
-    while ((caractere = fgetc(arqtxt)) != EOF) {
+    while ((caractere = fgetc(arqSaida)) != EOF) {
         // escreve cada bit do código de um caractere no bitmap
+        qtdTotalCaracteres++;
         for (size_t j = 0; codigos[caractere][j] != '\0'; j++) {
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
             if(bitmapGetLength(bm) == bitmapGetMaxSize(bm)) {
@@ -103,26 +102,20 @@ int main(int argc, char *argv[])
             }
         }
     }
-    // coloca o caractere de final
-    for (size_t j = 0; codigos[3][j] != '\0'; j++) {
-        bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[3][j]);
-        if(bitmapGetLength(bm) == bitmapGetMaxSize(bm)) {
-            fwrite(bitmapGetContents(bm), bitmapGetMaxSize(bm)/8, 1, arqbin);
-            bitmapLibera(bm);
-            bm = bitmapInit(MEGABYTE);
-        }
-    }
 
-    fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+    if(bitmapGetLength(bm)) fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+
+    fseek(arqbin, 0, SEEK_SET);
+    fwrite(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin);
 
     printf("Compactação concluída, arquivo '%s' compactado com sucesso!\n", argv[1]);
-    printf("Arquivo compactado: %s\n", nome);
+    printf("Arquivo compactado: '%s'\n", nome);
 
     LiberaArvore(abHuff);
     free(codigos);
     bitmapLibera(bm);
     fclose(arqbin);
-    fclose(arqtxt);
+    fclose(arqSaida);
     
     return EXIT_SUCCESS;
 }

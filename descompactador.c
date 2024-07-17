@@ -6,7 +6,7 @@
 #define ASCII_SIZE 257
 #define MEGABYTE 8388608
 
-void RecontroiCodigos(char *cabecalho, int tam, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *pos) {
+void ReconstroiCodigos(char *cabecalho, int tam, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *pos) {
     if (*pos == tam) return;
 
     if (cabecalho[*pos] == '1') {
@@ -20,10 +20,10 @@ void RecontroiCodigos(char *cabecalho, int tam, int l, int c, char codigos[l][c]
         (*pos)++;
         // manda pra esquerda
         codigo_atual[profundidade] = '0';
-        RecontroiCodigos(cabecalho, tam, l, c, codigos, codigo_atual, profundidade + 1, pos);
+        ReconstroiCodigos(cabecalho, tam, l, c, codigos, codigo_atual, profundidade + 1, pos);
         // madnda pra direita
         codigo_atual[profundidade] = '1';
-        RecontroiCodigos(cabecalho, tam, l, c, codigos, codigo_atual, profundidade + 1, pos);
+        ReconstroiCodigos(cabecalho, tam, l, c, codigos, codigo_atual, profundidade + 1, pos);
     }
 }
 
@@ -89,11 +89,12 @@ bitmap *LeMegaByteDoArquivo(FILE *arqbin) {
     return bm;
 }
 
-void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char codigos[l][c],FILE * arqsaida) {
+void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char codigos[l][c],FILE * arqsaida, unsigned long int qtdTotalCaracteres) {
     char codigoAtual[c];
-    int j = 0, flagFinaliza = 0;
-
-    while(!flagFinaliza) {
+    int j = 0;
+    unsigned long int qtdCaracteresDecodificados = 0;
+    
+    while(qtdCaracteresDecodificados < qtdTotalCaracteres) {
        if(index == MEGABYTE) {
             bitmapLibera(bm);
             bm = LeMegaByteDoArquivo(arqbin);
@@ -108,16 +109,13 @@ void DecodificaTexto(FILE* arqbin, bitmap *bm, int index, int l, int c, char cod
 
         for(size_t i = 0; i < ASCII_SIZE; i++) {
             if(EhIgualCodigo(codigoAtual, codigos[i])) {
-                if(i == 3) {
-                    flagFinaliza = 1;
-                    bitmapLibera(bm);
-                    break;
-                }
+                qtdCaracteresDecodificados++;
                 fputc(i,arqsaida);
                 j = 0;
             }
         }
     }
+    bitmapLibera(bm);
 }
 
 int main(int argc, char *argv[]) {
@@ -149,9 +147,10 @@ int main(int argc, char *argv[]) {
     printf("Gerando tabela de codificação a partir do cabeçalho...\n");
 
     int alturaAbHuff = 0, tamCabecalho = 0;
+    unsigned long int qtdTotalCaracteres = 0;
+    fread(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arq);
     fread(&alturaAbHuff, sizeof(int), 1, arq);
     fread(&tamCabecalho, sizeof(int), 1, arq);
-
 
     bitmap *bm = LeMegaByteDoArquivo(arq);
     
@@ -167,7 +166,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     int pos = 0;
-    RecontroiCodigos(cabecalho, tamCabecalho, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
+    ReconstroiCodigos(cabecalho, tamCabecalho, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
 
     for (int i = 0; i < ASCII_SIZE; i++)
         if (codigos[i][0] != '\0') printf("Caractere (%d): %s\n", i, codigos[i]);
@@ -178,7 +177,7 @@ int main(int argc, char *argv[]) {
 
     printf("Descompactando...\n");
 
-    DecodificaTexto(arq, bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqSaida);
+    DecodificaTexto(arq, bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqSaida, qtdTotalCaracteres);
 
     printf("Descompactação concluída, arquivo '%s' descompactado com sucesso!\n", argv[1]);
     printf("Arquivo descompactado: %s\n", nomeCompleto);
