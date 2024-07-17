@@ -3,7 +3,7 @@
 #include "arvore.h"
 #include "bitmap.h"
 #include "listaArvores.h"
-#define ASCII_SIZE 128
+#define ASCII_SIZE 257
 #define MEGABYTE 8388608
 
 lista* FazListaHuff(int* pesos) {
@@ -15,7 +15,7 @@ lista* FazListaHuff(int* pesos) {
             InsereLista(l, a);
         }
     }
-    // cria caractere ETX para comunicar o fim do texto
+    // cria caractere de número 129 (caractere não utilizado)
     a = CriaArvore(3, 1, CriaArvoreVazia(), CriaArvoreVazia());
     InsereLista(l, a);
     
@@ -24,6 +24,10 @@ lista* FazListaHuff(int* pesos) {
 
 int main(int argc, char *argv[])
 {
+    // int a = (int)'—';
+    // printf("'—': %d\n", a);
+    // return 0;
+    
     // arquivo de entrada:
     if(argc <= 1) {
         printf("ERRO: arquivo a ser compactado não foi informado.\n");
@@ -70,6 +74,9 @@ int main(int argc, char *argv[])
     // gera os códigos binários para cada caractere no texto
     GeraCodigos(abHuff, codigoAtual, 0, ASCII_SIZE, alturaAbHuff, codigos);
 
+    for (int i = 0; i < ASCII_SIZE; i++)
+        if (codigos[i][0] != '\0') printf("Caractere (%d): %s\n", i, codigos[i]);
+
     printf("Tabela de codificação criada.\n\n");
     
     // -----------------
@@ -80,6 +87,8 @@ int main(int argc, char *argv[])
 
     // escrevre a árvore de Huffman no bm
     EscreveCabecalho(bm, abHuff);
+    int tamCabecalho = bitmapGetLength(bm);
+    fwrite(&tamCabecalho, sizeof(int), 1, arqbin);
 
     rewind(arqtxt);
 
@@ -114,5 +123,6 @@ int main(int argc, char *argv[])
     bitmapLibera(bm);
     fclose(arqbin);
     fclose(arqtxt);
+    
     return EXIT_SUCCESS;
 }

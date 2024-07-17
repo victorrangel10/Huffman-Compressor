@@ -98,11 +98,6 @@ void EscreveArvore(bitmap *bm, arvBin *arvore)
 
 void EscreveCabecalho(bitmap *bm, arvBin *arvore) {
     EscreveArvore(bm, arvore);
-
-    /* coloca dois bits '1' para indicar que o cabecalho acabou*/
-    // motivo: nenhum dos primeiros 128 caracteres ASCII começam com '11' em sua codificação binária
-    bitmapAppendLeastSignificantBit(bm, '1');
-    bitmapAppendLeastSignificantBit(bm, '1');
 }
 
 void ImprimeArvore(arvBin *a)
