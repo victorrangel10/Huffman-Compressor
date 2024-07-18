@@ -144,13 +144,14 @@ int main(int argc, char *argv[]) {
     
     // -------------------
 
-    printf("Gerando tabela de codificação a partir do cabeçalho...\n");
-
+    // leitura de metadados
     int alturaAbHuff = 0, tamCabecalho = 0;
     unsigned long int qtdTotalCaracteres = 0;
     fread(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arq);
     fread(&alturaAbHuff, sizeof(int), 1, arq);
     fread(&tamCabecalho, sizeof(int), 1, arq);
+
+    printf("Gerando tabela de codificação a partir do cabeçalho...\n");
 
     bitmap *bm = LeMegaByteDoArquivo(arq);
     
@@ -180,7 +181,7 @@ int main(int argc, char *argv[]) {
     DecodificaTexto(arq, bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqSaida, qtdTotalCaracteres);
 
     printf("Descompactação concluída, arquivo '%s' descompactado com sucesso!\n", argv[1]);
-    printf("Arquivo descompactado: %s\n", nomeCompleto);
+    printf("Arquivo descompactado: '%s'.\n", nomeCompleto);
 
     free(codigos);
     fclose(arqSaida);

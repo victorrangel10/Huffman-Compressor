@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
 
     if(bitmapGetLength(bm)) fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
 
+    // volta para o início do arquivo e escreve o valor real da quantidade de caracteres
     fseek(arqbin, 0, SEEK_SET);
     fwrite(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin);
 
