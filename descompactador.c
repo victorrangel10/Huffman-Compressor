@@ -9,7 +9,6 @@
 // funções auxiliares
 
 void ReconstroiCodigos(char *cabecalho, int tamCabecalho, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *posNoCabecalho);
-void InverteString(char* str);
 int EhIgualCodigo(char *codigo, char *string);
 void TransformaCabecalhoEmString(int tamCabecalho, char *cabecalho, bitmap *bm, int *index);
 bitmap *LeMegaByteDoArquivo(FILE *arqbin);
@@ -26,7 +25,7 @@ int main(int argc, char *argv[])
     FILE *arqbin = fopen(argv[1], "rb");
     if (arqbin == NULL)
     {
-        printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
+        printf("ERRO: não foi possível ler o arquivo %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
@@ -36,7 +35,7 @@ int main(int argc, char *argv[])
     FILE *arqSaida = fopen(nomeCompleto, "w");
     if (arqSaida == NULL)
     {
-        printf("ERRO: não foi possível abrir o arquivo ./%s\n", nomeCompleto);
+        printf("ERRO: não foi possível abrir o arquivo %s\n", nomeCompleto);
         return EXIT_FAILURE;
     }
 
@@ -89,15 +88,6 @@ int main(int argc, char *argv[])
     fclose(arqbin);
 
     return EXIT_SUCCESS;
-}
-
-void InverteString(char* str) {
-    int n = strlen(str);
-    for (int i = 0; i < n / 2; i++) {
-        char temp = str[i];
-        str[i] = str[n - i - 1];
-        str[n - i - 1] = temp;
-    }
 }
 
 void ReconstroiCodigos(char *cabecalho, int tamCabecalho, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *posNoCabecalho)

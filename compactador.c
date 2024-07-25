@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     }
     FILE* arqSaida = fopen(argv[1], "r");
     if(arqSaida == NULL) {
-        printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
+        printf("ERRO: não foi possível ler o arquivo %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     sprintf(nome, "%s.comp", argv[1]);
     FILE* arqbin = fopen(nome, "wb");
     if(arqbin == NULL) {
-        printf("ERRO: não foi possível abrir o arquivo ./%s\n", nome);
+        printf("ERRO: não foi possível abrir o arquivo %s\n", nome);
         return EXIT_FAILURE;
     }
     // -----------------
