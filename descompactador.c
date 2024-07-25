@@ -6,34 +6,128 @@
 #define ASCII_SIZE 257
 #define MEGABYTE 8388608
 
-void ReconstroiCodigos(char *cabecalho, int tam, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *pos)
+// funções auxiliares
+
+void ReconstroiCodigos(char *cabecalho, int tamCabecalho, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *posNoCabecalho);
+void InverteString(char* str);
+int EhIgualCodigo(char *codigo, char *string);
+void TransformaCabecalhoEmString(int tamCabecalho, char *cabecalho, bitmap *bm, int *index);
+bitmap *LeMegaByteDoArquivo(FILE *arqbin);
+void DecodificaTexto(FILE *arqbin, bitmap *bm, int index, int l, int c, char codigos[l][c], FILE *arqsaida, unsigned long int qtdTotalCaracteres);
+
+int main(int argc, char *argv[])
 {
-    if (*pos == tam)
+    // abrindo arquivos:
+    if (argc <= 1)
+    {
+        printf("ERRO: arquivo compactado não foi informado.\n");
+        return EXIT_FAILURE;
+    }
+    FILE *arqbin = fopen(argv[1], "rb");
+    if (arqbin == NULL)
+    {
+        printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
+        return EXIT_FAILURE;
+    }
+
+    char nomeCompleto[101];
+    argv[1][strlen(argv[1]) - strlen(".comp")] = '\0'; // tira o '.comp'
+    sprintf(nomeCompleto, "%s (descompactado)", argv[1]);
+    FILE *arqSaida = fopen(nomeCompleto, "w");
+    if (arqSaida == NULL)
+    {
+        printf("ERRO: não foi possível abrir o arquivo ./%s\n", nomeCompleto);
+        return EXIT_FAILURE;
+    }
+
+    // -------------------
+
+    // leitura de metadados
+    int alturaAbHuff = 0, tamCabecalho = 0;
+    unsigned long int qtdTotalCaracteres = 0;
+    fread(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin);
+    fread(&alturaAbHuff, sizeof(int), 1, arqbin);
+    fread(&tamCabecalho, sizeof(int), 1, arqbin);
+
+    printf("Gerando tabela de codificação a partir do cabeçalho...\n");
+
+    bitmap *bm = LeMegaByteDoArquivo(arqbin);
+
+    char cabecalho[tamCabecalho];
+    int index = 0; // armazena a posição do bit no bm após a leitura do cabeçalho
+    TransformaCabecalhoEmString(tamCabecalho, cabecalho, bm, &index);
+
+    // transforma a string lida do cabeçalho na tabela de codificação
+    char codigo_atual[alturaAbHuff];
+    char(*codigos)[alturaAbHuff] = calloc(ASCII_SIZE * alturaAbHuff, sizeof(char));
+    if (!codigos)
+    {
+        printf("Problema na alocação de memória.\n");
+        return EXIT_FAILURE;
+    }
+    int pos = 0;
+    ReconstroiCodigos(cabecalho, tamCabecalho, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
+
+    // for (int i = 0; i < ASCII_SIZE; i++)
+    //     if (codigos[i][0] != '\0')
+    //         printf("Caractere (%d): %s\n", i, codigos[i]);
+
+    printf("Tabela de codificação gerada.\n\n");
+
+    // -------------------
+
+    printf("Descompactando...\n");
+
+    DecodificaTexto(arqbin, bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqSaida, qtdTotalCaracteres);
+
+    printf("Arquivo '%s' descompactado com sucesso!\n", argv[1]);
+    printf("Arquivo descompactado: '%s'.\n", nomeCompleto);
+
+    // liberações
+    free(codigos);
+    fclose(arqSaida);
+    fclose(arqbin);
+
+    return EXIT_SUCCESS;
+}
+
+void InverteString(char* str) {
+    int n = strlen(str);
+    for (int i = 0; i < n / 2; i++) {
+        char temp = str[i];
+        str[i] = str[n - i - 1];
+        str[n - i - 1] = temp;
+    }
+}
+
+void ReconstroiCodigos(char *cabecalho, int tamCabecalho, int l, int c, char codigos[l][c], char codigo_atual[c], int profundidade, int *posNoCabecalho)
+{
+    if (*posNoCabecalho == tamCabecalho)
         return;
 
-    if (cabecalho[*pos] == '1')
+    if (cabecalho[*posNoCabecalho] == '1')
     {
-        (*pos)++;
+        (*posNoCabecalho)++;
         codigo_atual[profundidade] = '\0';
-        char caracter = cabecalho[(*pos)];
+        char caracter = cabecalho[(*posNoCabecalho)];
         strcpy(codigos[(unsigned char)caracter], codigo_atual);
-        (*pos)++;
+        (*posNoCabecalho)++;
     }
-    else if (cabecalho[*pos] == '0')
+    else if (cabecalho[*posNoCabecalho] == '0')
     {
-        (*pos)++;
+        (*posNoCabecalho)++;
         // manda pra esquerda
         codigo_atual[profundidade] = '0';
-        ReconstroiCodigos(cabecalho, tam, l, c, codigos, codigo_atual, profundidade + 1, pos);
+        ReconstroiCodigos(cabecalho, tamCabecalho, l, c, codigos, codigo_atual, profundidade + 1, posNoCabecalho);
         // madnda pra direita
         codigo_atual[profundidade] = '1';
-        ReconstroiCodigos(cabecalho, tam, l, c, codigos, codigo_atual, profundidade + 1, pos);
+        ReconstroiCodigos(cabecalho, tamCabecalho, l, c, codigos, codigo_atual, profundidade + 1, posNoCabecalho);
     }
 }
 
 int EhIgualCodigo(char *codigo, char *string)
 {
-     return (strcmp(codigo, string) == 0) ? 1 : 0;
+     return !strcmp(codigo, string);
 }
 
 void TransformaCabecalhoEmString(int tamCabecalho, char *cabecalho, bitmap *bm, int *index)
@@ -137,80 +231,3 @@ void DecodificaTexto(FILE *arqbin, bitmap *bm, int index, int l, int c, char cod
     bitmapLibera(bm);
 }
 
-int main(int argc, char *argv[])
-{
-    // abrindo arquivos:
-    if (argc <= 1)
-    {
-        printf("ERRO: arquivo compactado não foi informado.\n");
-        return EXIT_FAILURE;
-    }
-    FILE *arq = fopen(argv[1], "rb");
-    if (arq == NULL)
-    {
-        printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
-        return EXIT_FAILURE;
-    }
-
-    char nome[21];
-    sscanf(argv[1], "%[^.]", nome);
-    char ext[5];
-    sscanf(argv[1], "%*[^.].%[^.]", ext);
-    char nomeCompleto[51];
-    sprintf(nomeCompleto, "%s.%s (descompactado)", nome, ext);
-    FILE *arqSaida = fopen(nomeCompleto, "w");
-    if (arqSaida == NULL)
-    {
-        printf("ERRO: não foi possível abrir o arquivo ./%s\n", nomeCompleto);
-        return EXIT_FAILURE;
-    }
-
-    // -------------------
-
-    // leitura de metadados
-    int alturaAbHuff = 0, tamCabecalho = 0;
-    unsigned long int qtdTotalCaracteres = 0;
-    fread(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arq);
-    fread(&alturaAbHuff, sizeof(int), 1, arq);
-    fread(&tamCabecalho, sizeof(int), 1, arq);
-
-    printf("Gerando tabela de codificação a partir do cabeçalho...\n");
-
-    bitmap *bm = LeMegaByteDoArquivo(arq);
-
-    char cabecalho[tamCabecalho];
-    int index = 0; // armazena a posição do bit no bm após a leitura do cabeçalho
-    TransformaCabecalhoEmString(tamCabecalho, cabecalho, bm, &index);
-
-    // transforma a string lida do cabeçalho na tabela de codificação
-    char codigo_atual[alturaAbHuff];
-    char(*codigos)[alturaAbHuff] = calloc(ASCII_SIZE * alturaAbHuff, sizeof(char));
-    if (!codigos)
-    {
-        printf("Problema na alocação de memória.\n");
-        return EXIT_FAILURE;
-    }
-    int pos = 0;
-    ReconstroiCodigos(cabecalho, tamCabecalho, ASCII_SIZE, alturaAbHuff, codigos, codigo_atual, 0, &pos);
-
-    for (int i = 0; i < ASCII_SIZE; i++)
-        if (codigos[i][0] != '\0')
-            printf("Caractere (%d): %s\n", i, codigos[i]);
-
-    printf("Tabela de codificação gerada.\n\n");
-
-    // -------------------
-
-    printf("Descompactando...\n");
-
-    DecodificaTexto(arq, bm, index, ASCII_SIZE, alturaAbHuff, codigos, arqSaida, qtdTotalCaracteres);
-
-    printf("Descompactação concluída, arquivo '%s' descompactado com sucesso!\n", argv[1]);
-    printf("Arquivo descompactado: '%s'.\n", nomeCompleto);
-
-    free(codigos);
-    fclose(arqSaida);
-    fclose(arq);
-
-    return EXIT_SUCCESS;
-}

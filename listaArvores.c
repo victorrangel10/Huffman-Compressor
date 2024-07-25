@@ -2,6 +2,7 @@
 #include "arvore.h"
 #include <stdio.h>
 
+typedef struct celula tCell;
 
 struct celula{
 	arvBin * arvore;
@@ -141,7 +142,7 @@ int RetornaTam(lista * l){
 	return l->tam;
 }
 
-arvBin * ObtemPrimeiraArvore(lista *l){
+arvBin* ObtemPrimeiraArvore(lista *l){
 	return l->prim->arvore;
 }
 

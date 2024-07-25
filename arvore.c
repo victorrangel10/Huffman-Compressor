@@ -15,13 +15,13 @@ arvBin *CriaArvoreVazia()
     return NULL;
 }
 
-arvBin *CriaArvore(char caracter, int peso, arvBin *right, arvBin *left)
+arvBin *CriaArvore(char caractere, int peso, arvBin *right, arvBin *left)
 {
     arvBin *leaf = malloc(sizeof(arvBin));
     leaf->peso = peso;
     leaf->left_arvBin = left;
     leaf->right_arvBin = right;
-    leaf->caracter = caracter;
+    leaf->caracter = caractere;
     return leaf;
 }
 
@@ -79,25 +79,18 @@ int EhFolha(arvBin *no)
     return (EhArvoreVazia(no->left_arvBin) && EhArvoreVazia(no->right_arvBin));
 }
 
-void EscreveArvore(bitmap *bm, arvBin *arvore)
-{
+void EscreveArvoreBitmap(bitmap *bm, arvBin *arvore) {
     if (EhFolha(arvore))
     {
-        // printf("1%c", RetornaLetra(arvore));
         bitmapAppendLeastSignificantBit(bm, (unsigned char)'1');
         bitmap_append_char(bm, (unsigned char)RetornaLetra(arvore));
     }
     else
     {
-        // printf("0");
         bitmapAppendLeastSignificantBit(bm, (unsigned char)'0');
-        EscreveArvore(bm, arvore->left_arvBin);
-        EscreveArvore(bm, arvore->right_arvBin);
+        EscreveArvoreBitmap(bm, arvore->left_arvBin);
+        EscreveArvoreBitmap(bm, arvore->right_arvBin);
     }
-}
-
-void EscreveCabecalho(bitmap *bm, arvBin *arvore) {
-    EscreveArvore(bm, arvore);
 }
 
 void ImprimeArvore(arvBin *a)

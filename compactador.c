@@ -6,18 +6,9 @@
 #define ASCII_SIZE 257
 #define MEGABYTE 8388608
 
-lista* FazListaHuff(int* pesos) {
-    lista* l = CriaLista();
-    arvBin* a = NULL;
-    for(int i = 0; i < ASCII_SIZE; i++) {
-        if(pesos[i]) {
-            a = CriaArvore(i, pesos[i], CriaArvoreVazia(), CriaArvoreVazia());
-            InsereLista(l, a);
-        }
-    }
-    
-    return l;
-}
+// função auxiliar
+
+lista* FazListaHuff(int* pesos);
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +22,7 @@ int main(int argc, char *argv[])
         printf("ERRO: não foi possível ler o arquivo ./%s\n", argv[1]);
         return EXIT_FAILURE;
     }
+
     // arquivo de saída:
     char nome[31];
     sprintf(nome, "%s.comp", argv[1]);
@@ -51,7 +43,7 @@ int main(int argc, char *argv[])
     // array de ints representando a tabela ASCII que contém os pesos de cada letra
     int pesos[ASCII_SIZE] = {0};
 
-    // lê o input e determina os pesos de cada letra
+    // lê o arquivo de entrada e determina os pesos de cada letra
     int caractere = 0;
     while ((caractere = fgetc(arqSaida)) != EOF) pesos[caractere]++;
 
@@ -67,13 +59,12 @@ int main(int argc, char *argv[])
     printf("Criando tabela de codificação...\n");
 
     char codigoAtual[alturaAbHuff];
-    char (*codigos)[alturaAbHuff] = calloc (ASCII_SIZE*alturaAbHuff, sizeof(char));
+    char (*codigos)[alturaAbHuff] = calloc(ASCII_SIZE*alturaAbHuff, sizeof(char));
 
-    // gera os códigos binários para cada caractere no texto
     GeraCodigos(abHuff, codigoAtual, 0, ASCII_SIZE, alturaAbHuff, codigos);
 
-    for (int i = 0; i < ASCII_SIZE; i++)
-        if (codigos[i][0] != '\0') printf("Caractere (%d): %s\n", i, codigos[i]);
+    // for (int i = 0; i < ASCII_SIZE; i++)
+    //     if (codigos[i][0] != '\0') printf("Caractere (%d): %s\n", i, codigos[i]);
 
     printf("Tabela de codificação criada.\n\n");
     
@@ -83,8 +74,8 @@ int main(int argc, char *argv[])
 
     bitmap *bm = bitmapInit(MEGABYTE);
 
-    // escrevre a árvore de Huffman no bm
-    EscreveCabecalho(bm, abHuff);
+    // escrevre a árvore de Huffman no início do bm
+    EscreveArvoreBitmap(bm, abHuff);
     int tamCabecalho = bitmapGetLength(bm);
     fwrite(&tamCabecalho, sizeof(int), 1, arqbin);
 
@@ -103,15 +94,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    // escreve o conteúdo restante do bm (caso exista) no arquivo binário
     if(bitmapGetLength(bm)) fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
 
-    // volta para o início do arquivo e escreve o valor real da quantidade de caracteres
-    fseek(arqbin, 0, SEEK_SET);
+    // volta para o início do arquivo binário e escreve o valor real da quantidade de caracteres
+    rewind(arqbin);
     fwrite(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin);
 
-    printf("Compactação concluída, arquivo '%s' compactado com sucesso!\n", argv[1]);
+    printf("Arquivo '%s' compactado com sucesso!\n", argv[1]);
     printf("Arquivo compactado: '%s'\n", nome);
 
+    // liberações
     LiberaArvore(abHuff);
     free(codigos);
     bitmapLibera(bm);
@@ -119,4 +112,17 @@ int main(int argc, char *argv[])
     fclose(arqSaida);
     
     return EXIT_SUCCESS;
+}
+
+lista* FazListaHuff(int* pesos) {
+    lista* l = CriaLista();
+    arvBin* a = NULL;
+    for(int i = 0; i < ASCII_SIZE; i++) {
+        if(pesos[i]) {
+            a = CriaArvore(i, pesos[i], CriaArvoreVazia(), CriaArvoreVazia());
+            InsereLista(l, a);
+        }
+    }
+    
+    return l;
 }

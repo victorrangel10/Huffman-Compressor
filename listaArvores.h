@@ -6,7 +6,6 @@
 #include "arvore.h"
 
 // Definição do tipo de dado tCell e lista
-typedef struct celula tCell;
 typedef struct lista lista;
 
 
@@ -80,5 +79,5 @@ arvBin *ObtemPrimeiraArvore(lista *l);
  * @param l Ponteiro para a lista a ser liberada.
  */
 void LiberaListaArvores(lista *l);
+
 #endif // LISTA_H
-//

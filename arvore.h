@@ -17,15 +17,15 @@ typedef struct _arvBin arvBin;
 arvBin *CriaArvoreVazia();
 
 /**
- * @brief Cria uma árvore com um nó raiz.
+ * @brief Cria uma árvore a partir do conteúdo do nó raíz e de suas subárvores.
  * 
- * @param caracter Caractere armazenado no nó raiz.
+ * @param caractere Caractere armazenado no nó raiz.
  * @param peso Peso do nó raiz.
  * @param right Ponteiro para a subárvore direita.
  * @param left Ponteiro para a subárvore esquerda.
  * @return Ponteiro para a árvore criada.
  */
-arvBin *CriaArvore(char caracter, int peso, arvBin *right, arvBin *left);
+arvBin *CriaArvore(char caractere, int peso, arvBin *right, arvBin *left);
 
 /**
  * @brief Libera a memória alocada para a árvore.
@@ -84,20 +84,12 @@ char RetornaLetra(arvBin *a);
 int EhFolha(arvBin *no);
 
 /**
- * @brief Escreve a árvore em um bitmap.
+ * @brief Escreve árvore em bitmap.
  * 
  * @param bm Ponteiro para o bitmap.
  * @param arvore Ponteiro para a árvore.
  */
-void EscreveArvore(bitmap *bm, arvBin *arvore);
-
-/**
- * @brief Escreve o cabeçalho da árvore em um bitmap.
- * 
- * @param bm Ponteiro para o bitmap.
- * @param arvore Ponteiro para a árvore.
- */
-void EscreveCabecalho(bitmap *bm, arvBin *arvore);
+void EscreveArvoreBitmap(bitmap *bm, arvBin *arvore);
 
 /**
  * @brief Imprime a árvore na saída padrão.
@@ -107,7 +99,9 @@ void EscreveCabecalho(bitmap *bm, arvBin *arvore);
 void ImprimeArvore(arvBin *a);
 
 /**
- * @brief Gera códigos para os caracteres armazenados na árvore.
+ * @brief Gera códigos para os caracteres armazenados nos nós folhas da árvore.
+ * 
+ * Obs.: os códigos representam o caminho até o caractere na árvore.
  * 
  * @param raiz Ponteiro para a raiz da árvore.
  * @param codigo_atual String que representa o código atual.
