@@ -20,7 +20,13 @@
 	- [Conclusão](#conclusão)
 
 ## Introdução
-O compactador Huffman é uma aplicação com o intuito de, a partir de um arquivo de entrada, gerar um arquivo binário de tamanho inferior utilizando o algoritmo de codificação de Huffman.
+A codificação de Huffman é um método de compressão que usa as probabilidades de ocorrência dos símbolos no conjunto de dados a ser comprimido para determinar códigos de tamanho variável para cada símbolo.</br>
+
+Assim como em outros métodos de codificação, os símbolos mais comuns são geralmente representados usando-se menos dígitos que os símbolos que aparecem com menos frequência, garantindo que o tamanho total dos dados seja minimizado, diminuindo o tamanho dos arquivos sem perda de informação.</br> 
+
+Ele foi desenvolvido em 1952 por David A. Huffman que era, na época, estudante de doutorado no MIT, e foi publicado no artigo "A Method for the Construction of Minimum-Redundancy Codes"</br>
+
+O compactador Huffman é uma aplicação que utiliza o algoritmo de codificação de Huffman e uma série de estruturas de dados escrito em C para compactar e descompactar arquivos.
 
 ## Funcionamento
 
@@ -46,8 +52,8 @@ Para fins de modularização as estruturas de dados com suas respectivas funçõ
 ## Funcionamento
 * Compactador
 	1.  Digite `make c` no terminal para compilar o compactador.
-	2.  Para rodar com o valgrind digite `make runC f=<caminho_do_arquivo>`.
-	3.  Para rodar sem o valgrind digite `./compactador <caminho_do_arquivo>`.
+	2.  Para executar o programa com o valgrind, digite `make runC f=<caminho_do_arquivo>`.
+	3.  Para executar o programa sem o valgrind, digite `./compactador <caminho_do_arquivo>`.
 
 		* Substitua <caminho_do_arquivo> pelo caminho do arquivo a ser compactado.
 
@@ -55,8 +61,8 @@ Para fins de modularização as estruturas de dados com suas respectivas funçõ
 
 * Descompactador
 	1.  Digite `make d` no terminal para compilar o descompactador.
-	2.  Para rodar com o valgrind digite `make runD f=<caminho_do_arquivo>`.
-	3.  Para rodar sem o valgrind digite `./descompactador <caminho_do_arquivo>`.
+	2.  Para executar o programa com o valgrind digite `make runD f=<caminho_do_arquivo>`.
+	3.  Para executar o programa sem o valgrind digite `./descompactador <caminho_do_arquivo>`.
    
 		* Substitua <caminho_do_arquivo> pelo caminho do arquivo a ser descompactado.
 
@@ -67,3 +73,8 @@ Para fins de modularização as estruturas de dados com suas respectivas funçõ
 ## Conclusão
 A implementação deste trabalho sobre árvores binárias, listas encadeadas e alocação dinâmica em C fortaleceu o desenvolvimento de habilidades 
 como: trabalho em grupo usando versionamento de código (Git e Github), criação e manipulação de estruturas de dados aprendidas durante a disciplina Estrutura de Dados (INF15974) e abstração/modularização utilizando TADs opacos.
+
+## Bibliografia
+CELES, Waldemar; CERQUEIRA, Renato; RANGEL NETTO, José Lucas Mourão. Introdução a estruturas de dados
+com técnicas de programação em C. 1. ed. Rio de Janeiro: Campus, 2004. xiv, 294 p.</br>
+D. A. Huffman, "A Method for the Construction of Minimum-Redundancy Codes," in Proceedings of the IRE, vol. 40, no. 9, pp. 1098-1101, Sept. 1952, doi: 10.1109/JRPROC.1952.273898.
