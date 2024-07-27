@@ -193,6 +193,11 @@ void DecodificaTexto(FILE *arqbin, bitmap *bm, int index, int l, int c, char cod
     int j = 0;
     unsigned long int qtdCaracteresDecodificados = 0;
 
+    // para acompanhar o progresso da descompactação
+    printf("0%%");
+    fflush(stdout);
+    int porcentagem = 20;
+
     while (qtdCaracteresDecodificados < qtdTotalCaracteres)
     {
         if (index == MEGABYTE)
@@ -217,7 +222,14 @@ void DecodificaTexto(FILE *arqbin, bitmap *bm, int index, int l, int c, char cod
                 j = 0;
             }
         }
+
+        if(((float)qtdCaracteresDecodificados/qtdTotalCaracteres) >= (porcentagem)/100.00) {
+            printf("\r%d%%", porcentagem); // limpa a linha e escreve a porcentagem atual
+            fflush(stdout);
+            porcentagem += 20;
+        }
     }
+    printf("\n\n");
     bitmapLibera(bm);
 }
 
