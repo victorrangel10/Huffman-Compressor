@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     }
     // -----------------
 
+    unsigned long int tamArqBinBytes = 2*sizeof(int) + sizeof(unsigned long int); // tamanho dos metadados
+
     unsigned long int qtdTotalCaracteres = 0;
     fwrite(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin); // já reserva o espaço no arquivo
     // o valor real será calculado ao longo do programa, sendo reescrito após o cálculo
@@ -87,6 +89,7 @@ int main(int argc, char *argv[])
         for (size_t j = 0; codigos[caractere][j] != '\0'; j++) {
             bitmapAppendLeastSignificantBit(bm, (unsigned char)codigos[caractere][j]);
             if(bitmapGetLength(bm) == bitmapGetMaxSize(bm)) {
+                tamArqBinBytes += (bitmapGetMaxSize(bm)/8);
                 fwrite(bitmapGetContents(bm), bitmapGetMaxSize(bm)/8, 1, arqbin);
                 bitmapLibera(bm);
                 bm = bitmapInit(MEGABYTE);
@@ -95,14 +98,28 @@ int main(int argc, char *argv[])
     }
 
     // escreve o conteúdo restante do bm (caso exista) no arquivo binário
-    if(bitmapGetLength(bm)) fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+    if(bitmapGetLength(bm)) {
+        tamArqBinBytes += (bitmapGetLength(bm) + 7) / 8;
+        fwrite(bitmapGetContents(bm), (bitmapGetLength(bm) + 7) / 8, 1, arqbin);
+    }
 
     // volta para o início do arquivo binário e escreve o valor real da quantidade de caracteres
     rewind(arqbin);
     fwrite(&qtdTotalCaracteres, sizeof(unsigned long int), 1, arqbin);
 
     printf("Arquivo '%s' compactado com sucesso!\n", argv[1]);
-    printf("Arquivo compactado: '%s'\n", nome);
+    printf("Arquivo compactado: '%s'\n\n", nome);
+
+    unsigned long int tamArqOriginalBytes = qtdTotalCaracteres*sizeof(char);
+    printf("Tamanho do arquivo original: %ld bytes.\n", tamArqOriginalBytes);
+    printf("Tamanho do arquivo compactado: %ld bytes.\n", tamArqBinBytes);
+
+    if(tamArqBinBytes >= tamArqOriginalBytes) printf("Não houve redução no tamanho do arquivo.\n");
+    else {
+        float red = 100.00*((tamArqOriginalBytes - tamArqBinBytes)/(float)tamArqOriginalBytes);
+        printf("Redução em, aproximadamente, %.02f%%.\n", red);
+    }
+    
 
     // liberações
     LiberaArvore(abHuff);
