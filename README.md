@@ -27,7 +27,7 @@ Assim como em outros métodos de codificação, os símbolos mais comuns são ge
 
 Ele foi desenvolvido em 1952 por David A. Huffman que era, na época, estudante de doutorado no MIT, e foi publicado no artigo "A Method for the Construction of Minimum-Redundancy Codes"</br>
 
-O compactador Huffman é uma aplicação que utiliza o algoritmo de codificação de Huffman e uma série de estruturas de dados escrito em C para compactar e descompactar arquivos.
+O compactador Huffman é uma aplicação que utiliza o algoritmo de codificação de Huffman e uma série de estruturas de dados escrito em C para compactar e descompactar arquivos (como, por exemplo, fotos, vídeos e arquivos de texto).
 
 ## Funcionamento
 
