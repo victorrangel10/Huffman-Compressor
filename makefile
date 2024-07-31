@@ -3,8 +3,8 @@ c:
 d:
 	gcc descompactador.c listaArvores.c arvore.c bitmap.c -o descompactador
 
-runC:
-	 --leak-check=full ./compactador $(f)
+encode:
+	./compactador $(f)
 
-runD:
-	 --leak-check=full ./descompactador $(f)
+decode:
+	 ./descompactador $(f)
