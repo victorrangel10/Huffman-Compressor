@@ -21,7 +21,7 @@
    	- [Bibliografia](#bibliografia)
 
 ## Introdução
-A codificação de Huffman é um método de compressão que usa as probabilidades de ocorrência dos símbolos no conjunto de dados a ser comprimido para determinar códigos de tamanho variável para cada símbolo.</br>
+A codificação de Huffman é um método de compressão que usa as quantidades de ocorrência dos símbolos no conjunto de dados a ser comprimido para determinar códigos de tamanho variável para cada símbolo.</br>
 
 Assim como em outros métodos de codificação, os símbolos mais comuns são geralmente representados usando-se menos dígitos que os símbolos que aparecem com menos frequência, garantindo que o tamanho total dos dados seja minimizado, diminuindo o tamanho dos arquivos sem perda de informação.</br> 
 
@@ -45,31 +45,20 @@ O arquivo compactado/descompactado gerado a partir do arquivo de entrada (o arqu
 
 ## Implementação
 
-O programa foi implementado utilizando conceitos como: árvores binárias, listas simplesmente encadeadas com sentinelas, alocação dinâmica de
-memória e tipos abstratos de dados (TADs) opacos utilizando a linguagem C.
+O programa foi implementado utilizando conceitos como: árvores binárias, listas simplesmente encadeadas com sentinelas, alocação dinâmica de memória e tipos abstratos de dados (TADs) opacos utilizando a linguagem C.
 
 Para fins de modularização as estruturas de dados com suas respectivas funções de criação, manipulação e liberação foram criadas em arquivos separados (detalhes sobre as funções podem ser vistos nos headers). Além disso foi fornecido pela professora o TAD bitmap, cujo objetivo é facilitar a manipulação de informações a nível de bits.
 
 ## Funcionamento
 * Compactador
 	1.  Digite `make c` no terminal para compilar o compactador.
-	2.  Para executar o programa com o valgrind, digite `make runC f=<caminho_do_arquivo>`.
-	3.  Para executar o programa sem o valgrind, digite `./compactador <caminho_do_arquivo>`.
-
-		* Substitua <caminho_do_arquivo> pelo caminho do arquivo a ser compactado.
-
+	2.  Para executar o programa, digite `make encode f=<caminho_do_arquivo>`.
 	* Resultado: `<caminho_do_arquivo>.comp` (arquivo compactado).
-
+   
 * Descompactador
 	1.  Digite `make d` no terminal para compilar o descompactador.
-	2.  Para executar o programa com o valgrind digite `make runD f=<caminho_do_arquivo>`.
-	3.  Para executar o programa sem o valgrind digite `./descompactador <caminho_do_arquivo>`.
-   
-		* Substitua <caminho_do_arquivo> pelo caminho do arquivo a ser descompactado.
-
+	2.  Para executar o programa, digite `make decode f=<caminho_do_arquivo>`.
 	* Resultado: `<caminho_do_arquivo> (descompactado)` (arquivo descompactado).
-  
-* Obs.: utilizar o valgrind aumenta significativamente o tempo de execução.
 
 ## Conclusão
 A implementação deste trabalho sobre árvores binárias, listas encadeadas e alocação dinâmica em C fortaleceu o desenvolvimento de habilidades 
